@@ -1,8 +1,8 @@
 #include <iostream>
 #include <array>
+#include "board.h"
 
 using namespace std;
-
 class Board{
   public:
 
@@ -110,12 +110,8 @@ class Board{
           return '?';
       }
     }
-  
-  private:
     
     std::array<Piece, 64> board;
-    
-
 
 };
 

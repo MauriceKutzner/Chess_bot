@@ -9,7 +9,7 @@ enum Letter {A , B = 8, C = 16, D = 24, E = 32, F = 40, G = 48, H = 56};
 
 //bool b_w is true if white is to move and false if black is to move
 
-void move (array<Board::Piece, 64> board, bool b_w){
+void move (array<Board::Piece_type, 64> board, bool b_w){
 
   string move_str;
   cin >> move_str;    //get the move
@@ -21,11 +21,11 @@ void move (array<Board::Piece, 64> board, bool b_w){
 
     int index = char_to_square(let, num);
 
-    board[index] = Board::Pawn;
+    
 
     if(b_w == false){
       board[index] = Board::bPawn;
-      board
+      board[]
 
     }
 
@@ -96,6 +96,18 @@ int letter_to_number(char letter){
 int char_to_square(char letter, char number){
   int a = letter_to_number(letter);
 
-  int index = a + number - 1;       //this returns the index of the square
+  int index = a + number - 1;       
   return index;
+}
+
+
+
+
+
+
+
+
+
+bool is_legal (){
+
 }

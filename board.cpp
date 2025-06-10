@@ -6,12 +6,21 @@ using namespace std;
 class Board{
   public:
 
-    enum Piece {King, Queen, Rook, Bishop, Knight, Pawn, bKing, bQueen, bRook, bBishop, bKnight, bPawn,Empty};
+    enum Piece_type {King, Queen, Rook, Bishop, Knight, Pawn, Empty};
     Board(){
       fill_board();
     }
 
     void fill_board(){
+      Square s[64];
+      for(int n = 0; n<64; n++){
+
+      }
+
+
+
+
+      /*
       for(int n = 0; n < 64 ;n++){
         if(n == 0 || n == 7 ){
           board[n] = Rook;
@@ -59,7 +68,7 @@ class Board{
           board[n] = Empty;
         }
 
-      }
+      }*/
     }
 
     //void switch_board(){}
@@ -78,7 +87,7 @@ class Board{
           std::cout << endl << " ---------------------------------" << endl;
     }
 
-    char piece_to_char(Piece p){
+    char piece_to_char(Piece_type p){
       switch(p){
         case King:
           return 'K';
@@ -92,18 +101,6 @@ class Board{
           return 'H';
         case Pawn:
           return 'P';
-        case bKing:
-          return 'k';
-        case bQueen:
-          return 'q';
-        case bRook:
-          return 'r';
-        case bBishop:
-          return 'b';
-        case bKnight:
-          return 'h';
-        case bPawn:
-          return 'p';
         case Empty:
           return '0';
         default:
@@ -111,8 +108,39 @@ class Board{
       }
     }
     
-    std::array<Piece, 64> board;
+    std::array<Piece_type, 64> board;
 
+};
+
+
+class Square{
+  public:
+    Square(int index, bool color): sq_index(index), sq_color(color){        //construct the square with a given color and index
+
+    }
+    
+  
+    bool return_sq_color(){
+      return sq_color;
+    }
+
+    bool return_is_empty(){
+      return is_empty;
+    }
+  
+    int return_sq_index(){
+      return sq_index;
+    }
+
+    int return_type(){
+      return type;
+    }
+
+  private:
+    const int sq_index;
+    const bool sq_color;
+    bool is_empty;
+    int type;
 };
 
 int main(){

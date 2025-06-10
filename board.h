@@ -1,16 +1,22 @@
-#pragma once
+#ifndef BOARD_H
+#define BOARD_H
+
 #include <array>
+#include <memory>
+#include "square.h"
 
+class Square;  // Forward declaration
 
-  class Board{
-    public:
-      enum Piece_type {King, Queen, Rook, Bishop, Knight, Pawn, bKing, bQueen, bRook, bBishop, bKnight, bPawn,Empty};
+class Board {
+public:
 
-      Board();
-      void fill_board();
-      void print_board();
+    Board();
+    void fill_board();
+    void print_board();
+    char piece_to_char(Piece_type p);
 
-      std::array<Piece_type, 64> board;
+private:
+    std::array<std::unique_ptr<Square>, 64> board;
+};
 
-  };
-
+#endif

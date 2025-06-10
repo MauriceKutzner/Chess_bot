@@ -53,18 +53,18 @@ using namespace std;
 
     //void switch_board(){}
 
-    void Board::print_board(){
-      std::cout << " ---------------------------------" << endl;
+    void Board::print_board(){  
+      std::cout << "    A   B   C   D   E   F   G   H "<<endl << "  ---------------------------------" << endl << 1;
       for(int i = 0 ; i<64; i++){
         
         if((i%8 == 0) && i != 0){
           std::cout << " |";
-          std::cout << endl << " ---------------------------------" << endl;
+          std::cout << endl << "  ---------------------------------" << endl << (i/8+1);
         }
         std::cout << " | " << piece_to_char(board[i]->return_type());
       }
       std::cout << " |";
-          std::cout << endl << " ---------------------------------" << endl;
+          std::cout << endl << "  ---------------------------------" << endl;
     }
 
     char Board::piece_to_char(Piece_type p){

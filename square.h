@@ -1,7 +1,8 @@
 #ifndef SQUARE_H
 #define SQUARE_H
 
-class Board;  // Forward declare Board
+class Board;    //Forward declare Board
+class Piece;    //Forward declare Piece
 enum Piece_type {King, Queen, Rook, Bishop, Knight, Pawn, Empty};
 
 class Square {

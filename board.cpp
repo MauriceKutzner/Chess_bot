@@ -3,6 +3,7 @@
 #include "board.h"
 #include "square.h"
 #include <memory>
+#include "pieces.h"
 
 using namespace std;
 
@@ -87,51 +88,49 @@ using namespace std;
           return '?';
       }
     }
-    
-
-
 
 
 
     Square::Square():sq_index(), sq_color(){
-
     }
 
     Square::Square(int index, bool color): sq_index(index), sq_color(color){        //construct the square with a given color and index
-
     }
+
     void Square::make_pawn(){
       type = Pawn;
     }
+
     void Square::make_king(){
       type = King;
     }
+
     void Square::make_knight(){
       type = Knight;
     }
+
     void Square::make_bishop(){
       type = Bishop;
     }
+
     void Square::make_rook(){
       type = Rook;
     }
+
     void Square::make_queen(){
       type = Queen;
     }
+
     void Square::make_empty(){
       type = Empty;
     }
+
     
   
     bool Square::return_sq_color(){
       return sq_color;
     }
 
-    void Square::set_sq_color(bool col){
-      if(col == false){
-        sq_color = false;
-      }
-    }
     bool Square::return_is_empty(){
       return is_empty;
     }

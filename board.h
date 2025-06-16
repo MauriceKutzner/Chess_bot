@@ -3,9 +3,12 @@
 
 #include <array>
 #include <memory>
+#include <iostream>
 #include "square.h"
+#include "pieces.h"
 
-class Square;  // Forward declaration
+class Square;  //Forward declaration
+
 
 class Board {
 public:

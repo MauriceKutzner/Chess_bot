@@ -7,11 +7,17 @@ using namespace std;
 
   enum Piece_type_p {King, Queen, Rook, Bishop, Knight, Pawn, Empty};
 
-  void Piece::move_pc(char * target){
+  int Piece::get_index(char * target){
     int col =  1 + (target[0] -'a');
     int row = (target[1] -'0');
 
-    int target_index = (((row-1)*8)+(col -1));   //get the 0 based square index
+    int index = (((row-1)*8)+(col -1));   //get the 0 based square index
+    return index;
+  }
+
+  void Piece::move_pc(char * target){
+    int target_square = get_index(target);
+    
 
   }
   Piece::~Piece(){

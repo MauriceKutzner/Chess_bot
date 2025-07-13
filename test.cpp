@@ -7,7 +7,6 @@ using namespace std;
 
 
 void haha(char * target){
-    int temp;
     int col =  1 + (target[0] -'a');
     int row = (target[1] -'0');
 
@@ -17,7 +16,7 @@ void haha(char * target){
 }
 
 int main (){
-  char hoe[2] = {'b', '6'};
+  char hoe[2] = {'h', '8'};
   haha(hoe);
   return 0;
 }

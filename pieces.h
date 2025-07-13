@@ -11,6 +11,8 @@ class Piece{
     bool has_moved;
     int type;
 
+    int get_index(char * target);
+
     virtual void move_pc(char * target);
 
     virtual ~Piece();

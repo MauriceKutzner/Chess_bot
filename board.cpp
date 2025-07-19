@@ -21,111 +21,99 @@ using namespace std;
       for(int n = 1; n<64; n += 2){
         board[n] = std::make_unique<Square>(n, true);     //declare all white squares 
       }
+      board[4]->set_piece(std::make_unique<King>(true));
+      board[60]->set_piece(std::make_unique<King>(false));
 
-      for(int n = 8; n< 16; n++){
-        board[n]->make_pawn();
+      board[3]->set_piece(std::make_unique<Queen>(true));
+      board[59]->set_piece(std::make_unique<Queen>(false));
+
+      board[0]->set_piece(std::make_unique<Rook>(true));
+      board[7]->set_piece(std::make_unique<Rook>(true));
+      board[56]->set_piece(std::make_unique<Rook>(false));
+      board[63]->set_piece(std::make_unique<Rook>(false));
+
+      board[2]->set_piece(std::make_unique<Bishop>(true));
+      board[5]->set_piece(std::make_unique<Bishop>(true));
+      board[58]->set_piece(std::make_unique<Bishop>(false));
+      board[61]->set_piece(std::make_unique<Bishop>(false));
+
+      board[1]->set_piece(std::make_unique<Knight>(true));
+      board[6]->set_piece(std::make_unique<Knight>(true));
+      board[57]->set_piece(std::make_unique<Knight>(false));
+      board[62]->set_piece(std::make_unique<Knight>(false));
+
+      for(int i = 8;  i<16; i++){
+        board[i]->set_piece(std::make_unique<Pawn>(true));
       }
-      for(int n = 48; n< 56; n++){
-        board[n]->make_pawn();
+
+      for(int i = 48;  i<56; i++){
+        board[i]->set_piece(std::make_unique<Pawn>(false));
       }
-      for(int n = 16; n<48; n++){
-        board[n]->make_empty();
-      }
-      {       //this initializes all the other pieces
-        board[0]->make_rook(); 
-        board[7]->make_rook(); 
-        board[56]->make_rook(); 
-        board[63]->make_rook(); 
-        board[4]->make_king(); 
-        board[60]->make_king(); 
-        board[3]->make_queen(); 
-        board[59]->make_queen(); 
-        board[2]->make_knight();
-        board[5]->make_knight();
-        board[57]->make_knight();
-        board[62]->make_knight(); 
-        board[1]->make_bishop();
-        board[6]->make_bishop();
-        board[58]->make_bishop();
-        board[61]->make_bishop();
-      }
-     
+
+
+      
     }
 
     //void switch_board(){}
 
     void Board::print_board(){  
-      std::cout << "    A   B   C   D   E   F   G   H "<<endl << "  ---------------------------------" << endl << 1;
+      std::cout << "    A   B   C   D   E   F   G   H "<< endl << "  ---------------------------------" << endl << 1;
       for(int i = 0 ; i<64; i++){
         
         if((i%8 == 0) && i != 0){
           std::cout << " |";
           std::cout << endl << "  ---------------------------------" << endl << (i/8+1);
         }
-        std::cout << " | " << piece_to_char(board[i]->return_type());
+          if (board[i]->get_piece()){
+            std::cout << " | " << return_piece_letter(return_p_type(board[i]->get_piece()));
+          } 
+          else{
+            std::cout << " |  ";
+          }
       }
       std::cout << " |";
           std::cout << endl << "  ---------------------------------" << endl;
     }
 
-    char Board::piece_to_char(Piece_type p){
-      switch(p){
-        case King:
-          return 'K';
-        case Queen:
-          return 'Q';
-        case Rook:
-          return 'R';
-        case Bishop:
-          return 'B';
-        case Knight:
-          return 'H';
-        case Pawn:
-          return 'P';
-        case Empty:
-          return '0';
-        default:
-          return '?';
-      }
-    }
-
+    
 
 
     Square::Square():sq_index(), sq_color(){
     }
 
-    Square::Square(int index, bool color): sq_index(index), sq_color(color){        //construct the square with a given color and index
+    Square::Square(int index, bool color): sq_index(index), sq_color(color), piece(nullptr){        //construct the square with a given color and index
     }
 
-    void Square::make_pawn(){
-      type = Pawn;
+    void Square::set_piece(std::unique_ptr<Piece> new_piece){   //change the piece on the square
+        piece = std::move(new_piece);
     }
 
-    void Square::make_king(){
-      type = King;
+    std::unique_ptr<Piece>& Square::get_piece(){     //this gets the piece located on the square
+        return piece;   //this returns a raw pointer to piece
     }
 
-    void Square::make_knight(){
-      type = Knight;
-    }
+    int Board::return_p_type(std::unique_ptr<Piece>& piece){
+    return piece->type;
+  }
 
-    void Square::make_bishop(){
-      type = Bishop;
+    char Board::return_piece_letter(int p_type){
+      switch(p_type){
+        case 0:
+          return '#';
+        case 1:
+          return 'Q';
+        case 2:
+          return 'R';
+        case 3:
+          return 'B';
+        case 4:
+          return 'K';
+        case 5:
+          return 'P';
+        default:
+          return ' ';
+      }
     }
-
-    void Square::make_rook(){
-      type = Rook;
-    }
-
-    void Square::make_queen(){
-      type = Queen;
-    }
-
-    void Square::make_empty(){
-      type = Empty;
-    }
-
-    
   
     bool Square::return_sq_color(){
       return sq_color;
@@ -139,10 +127,7 @@ using namespace std;
       return Square::sq_index;
     }
 
-    Piece_type Square::return_type(){
-      return Square::type;
-    }
-
+    
 
 
   

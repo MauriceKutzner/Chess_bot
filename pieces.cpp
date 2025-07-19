@@ -5,7 +5,6 @@
 
 using namespace std;
 
-  enum Piece_type_p {King, Queen, Rook, Bishop, Knight, Pawn, Empty};
 
   int Piece::get_index(char * target){
     int col =  1 + (target[0] -'a');
@@ -15,42 +14,61 @@ using namespace std;
     return index;
   }
 
+  
+
   void Piece::move_pc(char * target){
     int target_square = get_index(target);
-    
+
 
   }
+
+  
+
   Piece::~Piece(){
 
   }
 
-  Pawn::Pawn(){
-    type = 5;
-    has_moved = false;
+  
+  King::King(bool pcolor):
+    Piece(0, pcolor, false,0){};
+  
+  void King::move_pc(char * target){
+
   }
 
-  King::King(){
-    type = 0;
-    has_moved = false;
+  Queen::Queen(bool pcolor):
+    Piece(0, pcolor, false,1){};
+
+  void Queen::move_pc(char * target){
+
   }
 
-  Queen::Queen(){
-    type = 1;
-    has_moved = false;
+  Rook::Rook(bool pcolor):
+    Piece(0, pcolor, false,2){};
+
+  void Rook::move_pc(char * target){
+
   }
 
-  Rook::Rook(){
-    type = 2;
-    has_moved = false;
+  Bishop::Bishop(bool pcolor):
+    Piece(0, pcolor, false,3){};
+
+  void Bishop::move_pc(char * target){
+
   }
 
-  Bishop::Bishop(){
-    type = 3;
-    has_moved = false;
+  Knight::Knight(bool pcolor):
+    Piece(0, pcolor, false,4){};
+
+  void Knight::move_pc(char * target){
+
   }
 
-  Knight::Knight(){
-    type = 4;
-    has_moved = false;
+  Pawn::Pawn(bool pcolor):
+    Piece(0, pcolor, false,5){};
+
+  void Pawn::move_pc(char * target){
+
   }
+
 

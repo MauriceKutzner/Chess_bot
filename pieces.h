@@ -21,6 +21,7 @@ class Piece{
     virtual void move_pc(char * target);
 
     virtual ~Piece();
+    
 };
 
 class Pawn: public Piece{

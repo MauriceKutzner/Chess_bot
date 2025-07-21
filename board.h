@@ -6,6 +6,8 @@
 #include <iostream>
 #include "square.h"
 #include "pieces.h"
+#include <string>
+#include <cctype>
 
 class Square;  //Forward declaration
 class Piece;
@@ -18,8 +20,10 @@ public:
     void fill_board();
     void print_board();
     int return_p_type(std::unique_ptr<Piece>& piece);
+    void play_game();
+    bool move_check(string input, bool white_move);
 
-private:
+//private:
     std::array<std::unique_ptr<Square>, 64> board;
 };
 

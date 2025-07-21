@@ -4,6 +4,8 @@
 #include "square.h"
 #include <memory>
 #include "pieces.h"
+#include <string>
+#include <cctype>
 
 using namespace std;
 
@@ -57,7 +59,7 @@ using namespace std;
     //void switch_board(){}
 
     void Board::print_board(){  
-      std::cout << "    A   B   C   D   E   F   G   H "<< endl << "  ---------------------------------" << endl << 1;
+      std::cout << endl << "    A   B   C   D   E   F   G   H "<< endl << "  ---------------------------------" << endl << 1;
       for(int i = 0 ; i<64; i++){
         
         if((i%8 == 0) && i != 0){
@@ -72,9 +74,52 @@ using namespace std;
           }
       }
       std::cout << " |";
-          std::cout << endl << "  ---------------------------------" << endl;
+          std::cout << endl << "  ---------------------------------" << endl<< endl;
+      
     }
 
+    bool Board::move_check(string input, bool white_move){
+
+      for(int i = 0; i<64; i++){
+        if(input[0]== 'o' || input[0] == '0' || input[0] == 'O'){     //special case for castles
+
+        }
+
+        else if(isupper(input[0]) == true){      //if the first letter is not capitalized, it is a pawn move
+          
+        }
+
+        else{
+          for(int i = 0; i<64; i++){
+            Piece * piece = board[i]->get_piece().get();
+            if(return_piece_letter(return_p_type(board[i]->get_piece())) == input[0]){    //every other piece move
+              if()
+            }
+          }
+        }
+
+      }
+    }
+
+
+    void Board::play_game(){
+      string input;
+      bool is_legal;
+      bool white_move = true;       //this tells the program who is to move
+      while(1){
+        print_board();
+
+        cin >> input;
+        if(input == "exit"){
+          cout << endl << endl;
+          break;
+        }
+
+        is_legal = move_check(input, white_move);
+
+        white_move = !white_move;     //for the next turn, the other player has his turn
+      }
+    }
     
 
 
@@ -99,7 +144,7 @@ using namespace std;
     char Board::return_piece_letter(int p_type){
       switch(p_type){
         case 0:
-          return '#';
+          return 'K';
         case 1:
           return 'Q';
         case 2:
@@ -107,7 +152,7 @@ using namespace std;
         case 3:
           return 'B';
         case 4:
-          return 'K';
+          return 'N';
         case 5:
           return 'P';
         default:
@@ -136,7 +181,9 @@ using namespace std;
 int main(){
   Board B;
 
-  B.print_board();
+  B.play_game();
+
+  //Piece * test_piece = board[10]->get_piece();
   
   
   

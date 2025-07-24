@@ -85,15 +85,17 @@ using namespace std;
 
         }
 
-        else if(isupper(input[0]) == true){      //if the first letter is not capitalized, it is a pawn move
+        else if(isupper(input[0]) == false){      //if the first letter is not capitalized, it is a pawn move
           
         }
 
-        else{
+        else{       //for all the other pieces
           for(int i = 0; i<64; i++){
             Piece * piece = board[i]->get_piece().get();
-            if(return_piece_letter(return_p_type(board[i]->get_piece())) == input[0]){    //every other piece move
-              if()
+            if(return_piece_letter(return_p_type(board[i]->get_piece())) == input[0]){    //does the piece type match the on specified
+              if(board[i]->get_piece()->color == white_move){           //does the color of the piece match that of the player 
+                
+              }
             }
           }
         }

@@ -21,14 +21,16 @@ public:
     void print_board();
     int return_p_type(std::unique_ptr<Piece>& piece);
     void play_game();
-    bool move_check(string input, bool white_move);
+    void move_check(std::string input, bool white_move);
     int get_index(char letter, char number);
-    void King_handling(string input);
-    void Queen_handling(string input);
-    void Rook_handling(string input);
-    void Bishop_handling(string input);
-    void Knight_handling(string input);
-    void pawn_handling(string input, bool white_move);
+    int get_col(char letter);
+    int get_row(char number);
+    void King_handling(std::string input);
+    void Queen_handling(std::string input);
+    void Rook_handling(std::string input);
+    void Bishop_handling(std::string input);
+    void Knight_handling(std::string input);
+    void pawn_handling(std::string input, bool white_move);
 
 
 

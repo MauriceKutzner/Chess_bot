@@ -67,7 +67,13 @@ using namespace std;
           std::cout << endl << "  ---------------------------------" << endl << (i/8+1);
         }
           if (board[i]->get_piece()){
-            std::cout << " | " << return_piece_letter(return_p_type(board[i]->get_piece()));
+            if(board[i]->get_piece()->color == true){
+              std::cout << " | " << return_piece_letter(return_p_type(board[i]->get_piece()));
+            }
+            else{
+              std::cout << " | " << char(tolower(return_piece_letter(return_p_type(board[i]->get_piece()))));
+
+            }
           } 
           else{
             std::cout << " |  ";
@@ -78,146 +84,175 @@ using namespace std;
       
     }
 
-    bool Board::move_check(string input, bool white_move){
+    void Board::move_check(std::string input, bool white_move){
 
-      for(int i = 0; i<64; i++){
-        if(input[0]== 'o' || input[0] == '0' || input[0] == 'O'){     //special case for castles
-
-        }
-
-        else if(isupper(input[0]) == false){      //if the first letter is not capitalized, it is a pawn move
-          if (input[1] == 'x'){
-            int index = get_index(input[2], input[3]);
-            if((index % 8) == 0){}    //only one possible capture
-            if((index % 8) == 7){}    //only one possible capture
-          }
-          else{
-            if(white_move == true){
-              int index = get_index(input[0], input[1]);
-              if(board[index - 8]->get_piece()){            //this checks for one square pawn moves
-                std::unique_ptr<Piece>& piece = board[index - 8]->get_piece();
-                board[index]->set_piece(move(piece));
-                break;
-              }
-              if(board[index - 16]->get_piece()){       //this checks for a pawn double square move
-                std::unique_ptr<Piece>& piece = board[index - 16]->get_piece();
-                board[index]->set_piece(move(piece));
-                break;
-              }
-              else{       //there is no pawn that can move like this
-                //insert some sort of error that repeats the input question
-              }
-              std::unique_ptr<Piece>& piece = board[index - 8]->get_piece();
-              board[index]->set_piece(move(piece));
-            }
-          }
-        }
-
-        else{       //for all the other pieces
-          for(int i = 0; i<64; i++){
-            std::unique_ptr<Piece>& piece = board[i]->get_piece();
-
-
-
-            if(return_piece_letter(return_p_type(piece)) == input[0]){    //does the piece type match the on specified
-              if(piece->color == white_move){           //does the color of the piece match that of the player 
-
-
-
-                if(input.length() < 4){     //for notation like Ka1 or Rf4
-                  board[get_index(input[1], input[2])]->set_piece(move(piece));
-                  break;
-                }
-
-                else if(input.length() < 5){
-                  if(input[1]=='x'){
-                    board[get_index(input[2], input[3])]->set_piece(move(piece));
-                  }
-                
-                  else
-                  board[]->set_piece(move(piece));       //move the piece because it is a unique pointer
-                  break;    //the piece is moved so no further looping
-                }
-
-              }
-            }
-          }
-        }
-
+      
+      if(input[0]== 'o' || input[0] == '0' || input[0] == 'O'){     //special case for castles
+      }
+      
+      if(isupper(input[0]) == false){      //if the first letter is not capitalized, it is a pawn move
+        pawn_handling(input, white_move);
+        return;
       }
     }
 
-    void Board::pawn_handling(string input, bool white_move){
-      if (input[1] == 'x'){
+    void Board::pawn_handling(std::string input, bool white_move){
+      if (input[1] == 'x'){     //case for a pawn capturing a piece
         int index = get_index(input[2], input[3]);
-        if((index % 8) == 0){}    //only one possible capture
-        if((index % 8) == 7){}    //only one possible capture
-      }
-      else{
-        if(white_move == true){
-          int index = get_index(input[0], input[1]);
-          if(board[index - 8]->get_piece()){            //this checks for one square pawn moves
-            std::unique_ptr<Piece>& piece = board[index - 8]->get_piece();
-            board[index]->set_piece(move(piece));
+        int col_def = get_col(input[2]);
+        int col_att = get_col(input[0]);
+
+        if(white_move == true){   //for white pawns
+
+          if(col_def > col_att){
+
+            if(index - 9 >= 0 && board[index - 9]->get_piece() && 
+              board[index - 9]-> get_piece()->type == 5 && board[index - 9]->get_piece()->color == true){
+
+              std::unique_ptr<Piece>& piece = board[index - 9]->get_piece();    //select pawn as piece
+              board[index]->set_piece(nullptr);   //delete piece = captured
+              board[index]->set_piece(std::move(piece));    //replace with pawn
+              return;
+            }
           }
-          else if(board[index - 16]->get_piece()){       //this checks for a pawn double square move
-            std::unique_ptr<Piece>& piece = board[index - 16]->get_piece();
-            board[index]->set_piece(move(piece));
-          }
-          else{       //there is no pawn that can move like this
-            //insert some sort of error that repeats the input question
-          }
-        if(white_move == false){
-          int index = get_index(input[0], input[1]);
-          if(board[index - 8]->get_piece()){            //this checks for one square pawn moves
-            std::unique_ptr<Piece>& piece = board[index - 8]->get_piece();
-            board[index]->set_piece(move(piece));
-          }
-          else if(board[index - 16]->get_piece()){       //this checks for a pawn double square move
-            std::unique_ptr<Piece>& piece = board[index - 16]->get_piece();
-            board[index]->set_piece(move(piece));
-          }
-          else{       //there is no pawn that can move like this
-            //insert some sort of error that repeats the input question
-          }
-              std::unique_ptr<Piece>& piece = board[index - 8]->get_piece();
-              board[index]->set_piece(move(piece));
+
+          if(col_def < col_att){
+
+            if(index - 7 >=0 && board[index - 7]->get_piece() 
+              && board[index - 7]-> get_piece()->type == 5 && board[index - 7]->get_piece()->color == true){
+
+              std::unique_ptr<Piece>& piece = board[index - 7]->get_piece();
+              board[index]->set_piece(nullptr);
+              board[index]->set_piece(std::move(piece));
+              return;
             }
           }
         }
+
+        if(white_move == false){    //for black pawns
+
+          if(col_def > col_att){
+            if(index + 7 >= 0 && board[index + 7]->get_piece() && 
+              board[index + 7]-> get_piece()->type == 5 && board[index + 7]->get_piece()->color == false){
+
+              std::unique_ptr<Piece>& piece = board[index + 7]->get_piece();
+              board[index]->set_piece(nullptr);
+              board[index]->set_piece(std::move(piece));
+              return;
+            }
+          }
+          if(col_def < col_att){
+            if(index +9 >=0 && board[index +9]->get_piece() 
+              && board[index +9]-> get_piece()->type == 5 && board[index + 9]->get_piece()->color == false){
+
+              std::unique_ptr<Piece>& piece = board[index + 9]->get_piece();
+              board[index]->set_piece(nullptr);
+              board[index]->set_piece(std::move(piece));
+              return;
+            }
+          }
+          
+        }
+        else{
+          return;
+        }
+      }
+      else{     //for non-capture pawn moves
+        if (white_move){
+          int index = get_index(input[0], input[1]);
+
+          // Single move forward
+          if (index - 8 >= 0 && board[index - 8]->get_piece() &&
+            board[index - 8]->get_piece()->type == 5 &&
+            board[index]->get_piece() == nullptr &&
+            board[index - 8]->get_piece()->color == true){
+
+            std::unique_ptr<Piece>& piece = board[index - 8]->get_piece();
+            board[index]->set_piece(std::move(piece));
+            return;
+          }
+
+          // Double move from starting rank
+          if(get_row(input[1]) == 4 &&      //pawn has to be on starting row
+            index - 16 >= 0 && 
+            board[index - 8]->get_piece() == nullptr &&
+            board[index - 16]->get_piece() &&
+            board[index - 16]->get_piece()->type == 5 &&
+            board[index]->get_piece() == nullptr &&
+            board[index - 16]->get_piece()->color == true) {
+
+            std::unique_ptr<Piece>& piece = board[index - 16]->get_piece();
+            board[index]->set_piece(std::move(piece));
+            return;
+          }
+        }
+        if(white_move == false){      //for a black  pawn
+          int index = get_index(input[0], input[1]);
+
+          // Single move forward
+          if (index + 8 >= 0 && board[index + 8]->get_piece() &&
+            board[index + 8]->get_piece()->type == 5 &&
+            board[index]->get_piece() == nullptr && 
+            board[index + 8]->get_piece()->color == false){
+
+            std::unique_ptr<Piece>& piece = board[index + 8]->get_piece();
+            board[index]->set_piece(std::move(piece));
+            return;
+          }
+
+            // Double move from starting rank
+          if(get_row(input[1]) == 5 &&
+            index + 16 >= 0 && 
+            board[index + 8]->get_piece() == nullptr &&
+            board[index + 16]->get_piece() &&
+            board[index + 16]->get_piece()->type == 5 &&
+            board[index]->get_piece() == nullptr && 
+            board[index + 16]->get_piece()->color == false){
+
+            std::unique_ptr<Piece>& piece = board[index + 16]->get_piece();
+            board[index]->set_piece(std::move(piece));
+            return;
+          }
+        }
+      }
     }
 
     int Board::get_index(char letter, char number){
-    int col =  1 + (letter -'a');
-    int row = (number -'0');
+      int col =  1 + (letter -'a');
+      int row = (number -'0');
 
-    int index = (((row-1)*8)+(col -1));   //get the 0 based square index
-    return index;
-  }
+      int index = (((row-1)*8)+(col -1));   //get the 0 based square index
+      return index;
+    }
 
-    
+    int Board::get_col(char letter){
+      int col = 1 + (letter - 'a');
+      return col;
+    }
 
+    int Board::get_row(char number){
+      int row = (number - '0');
+      return row;
+    }
 
     void Board::play_game(){
-      string input;
-      bool is_legal;
+      std::string input;
+      //bool is_legal;
       bool white_move = true;       //this tells the program who is to move
       while(1){
         print_board();
 
-        cin >> input;
+        std::cin >> input;
         if(input == "exit"){
-          cout << endl << endl;
+          std::cout << endl << endl;
           break;
         }
 
-        is_legal = move_check(input, white_move);
+        move_check(input, white_move);
 
         white_move = !white_move;     //for the next turn, the other player has his turn
       }
     }
-    
-
 
     Square::Square():sq_index(), sq_color(){
     }
@@ -267,12 +302,6 @@ using namespace std;
     int Square::return_sq_index(){
       return Square::sq_index;
     }
-
-    
-
-
-  
-    
 
 int main(){
   Board B;

@@ -24,10 +24,14 @@ using namespace std;
         board[n] = std::make_unique<Square>(n, true);     //declare all white squares 
       }
       board[4]->set_piece(std::make_unique<King>(true));
+      King_w_pos = 4;
       board[60]->set_piece(std::make_unique<King>(false));
+      King_b_pos = 60;
 
       board[3]->set_piece(std::make_unique<Queen>(true));
+      Queen_w_pos = 3;
       board[59]->set_piece(std::make_unique<Queen>(false));
+      Queen_b_pos = 59;
 
       board[0]->set_piece(std::make_unique<Rook>(true));
       board[7]->set_piece(std::make_unique<Rook>(true));
@@ -90,13 +94,32 @@ using namespace std;
       if(input[0]== 'o' || input[0] == '0' || input[0] == 'O'){     //special case for castles
       }
       
-      if(isupper(input[0]) == false){      //if the first letter is not capitalized, it is a pawn move
+      else  if(isupper(input[0]) == false){      //if the first letter is not capitalized, it is a pawn move
+             
         pawn_handling(input, white_move);
         return;
       }
+
+      else switch(input[0]){
+        case 'K':
+          King_handling(input, white_move);
+          return;
+        case 'Q':
+          Queen_handling(input, white_move);
+          return;
+        case 'R':
+          Rook_handling(input, white_move);
+          return;
+        case 'B':
+          Bishop_handling(input, white_move);
+          return;
+        case 'N':
+          Knight_handling(input, white_move);
+          return;
+      }
     }
 
-    void Board::pawn_handling(std::string input, bool white_move){
+    void Board::pawn_handling(std::string input, bool white_move){  //include en passent
       if (input[1] == 'x'){     //case for a pawn capturing a piece
         int index = get_index(input[2], input[3]);
         int col_def = get_col(input[2]);
@@ -107,7 +130,8 @@ using namespace std;
           if(col_def > col_att){
 
             if(index - 9 >= 0 && board[index - 9]->get_piece() && 
-              board[index - 9]-> get_piece()->type == 5 && board[index - 9]->get_piece()->color == true){
+              board[index - 9]-> get_piece()->type == 5 && 
+              board[index - 9]->get_piece()->color == true){
 
               std::unique_ptr<Piece>& piece = board[index - 9]->get_piece();    //select pawn as piece
               board[index]->set_piece(nullptr);   //delete piece = captured
@@ -133,7 +157,8 @@ using namespace std;
 
           if(col_def > col_att){
             if(index + 7 >= 0 && board[index + 7]->get_piece() && 
-              board[index + 7]-> get_piece()->type == 5 && board[index + 7]->get_piece()->color == false){
+              board[index + 7]-> get_piece()->type == 5 && 
+              board[index + 7]->get_piece()->color == false){
 
               std::unique_ptr<Piece>& piece = board[index + 7]->get_piece();
               board[index]->set_piece(nullptr);
@@ -215,6 +240,103 @@ using namespace std;
           }
         }
       }
+    }
+
+    void Board::King_handling(std::string input, bool white_move){
+      if(input[1] == 'x'){    //King captures piece
+        int index = get_index(input[2], input[3]);
+        if(white_move == true &&
+          board[King_w_pos]->get_piece() &&
+          board[index]->get_piece() &&
+          board[King_w_pos]->get_piece()->type == 0 && 
+          check_k_index(index, King_w_pos) == true){
+          
+          board[index]->set_piece(nullptr);
+          board[index]->set_piece(move(board[King_w_pos]->get_piece()));
+          King_w_pos = index;
+          return;
+        }
+        else if(white_move == false &&
+          board[King_b_pos]->get_piece() &&
+          board[index]->get_piece() &&
+          board[King_b_pos]->get_piece()->type == 0 && 
+          check_k_index(index, King_b_pos) == true){
+          
+          board[index]->set_piece(nullptr);
+          board[index]->set_piece(move(board[King_b_pos]->get_piece()));
+          King_b_pos = index;
+
+          return;
+        }
+      }
+      else{   //normal King move
+        int index = get_index(input[1], input[2]);
+        if(white_move == true &&
+          board[King_w_pos]->get_piece() &&
+          !board[index]->get_piece() &&
+          board[King_w_pos]->get_piece()->type == 0 && 
+          check_k_index(index, King_w_pos) == true){
+          
+          board[index]->set_piece(move(board[King_w_pos]->get_piece()));
+          King_w_pos = index;
+
+          return;
+        }
+        else if(white_move == false &&
+          board[King_b_pos]->get_piece() &&
+          !board[index]->get_piece() &&
+          board[King_b_pos]->get_piece()->type == 0 && 
+          check_k_index(index, King_b_pos) == true){
+          
+          board[index]->set_piece(move(board[King_b_pos]->get_piece()));
+          King_b_pos = index;
+
+          return;
+        }
+      }
+    }
+
+    void Board::Queen_handling(std::string input, bool white_move){
+
+    }
+
+    void Board::Rook_handling(std::string input, bool white_move){
+      
+    }
+    void Board::Bishop_handling(std::string input, bool white_move){
+      
+    }
+
+    void Board::Knight_handling(std::string input, bool white_move){
+      
+    }
+
+    bool Board::check_k_index(int targ_index, int K_pos){
+      static const int offsets[8] = {-9, -8, -7, -1, 1, 7, 8, 9};
+
+      int king_row = K_pos / 8;
+      int king_col = K_pos % 8;
+
+      for (int offset : offsets){
+        int new_pos = K_pos + offset;
+
+        // 1. Check if the new position is within board bounds
+        if (new_pos < 0 || new_pos >= 64){
+          continue;
+        }
+
+        // 2. Calculate the row and column of the new position
+        int new_row = new_pos / 8;
+        int new_col = new_pos % 8;
+
+        // 3. Ensure move doesn't wrap around (e.g. from H1 to A2)
+        if (std::abs(king_row - new_row) <= 1 && std::abs(king_col - new_col) <= 1){
+          if (new_pos == targ_index) {
+            return true; // The target index is a valid King move
+          }
+        }
+      }
+      return false; // Target index is not reachable by the King
     }
 
     int Board::get_index(char letter, char number){

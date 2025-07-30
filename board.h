@@ -28,6 +28,7 @@ public:
     void King_handling(std::string input, bool white_move);
     bool check_k_index(int targ_index, int K_pos);
     void Queen_handling(std::string input, bool white_move);
+    bool check_q_index(int targ_index, int Q_pos);
     void Rook_handling(std::string input, bool white_move);
     void Bishop_handling(std::string input, bool white_move);
     void Knight_handling(std::string input, bool white_move);
@@ -38,11 +39,15 @@ public:
 
 //private:
     std::array<std::unique_ptr<Square>, 64> board;
+
+    bool has_moved;
+
     int King_w_pos;
     int King_b_pos;
 
     int Queen_w_pos;
     int Queen_b_pos;
+
 };
 
 #endif

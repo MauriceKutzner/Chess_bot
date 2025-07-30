@@ -136,6 +136,7 @@ using namespace std;
               std::unique_ptr<Piece>& piece = board[index - 9]->get_piece();    //select pawn as piece
               board[index]->set_piece(nullptr);   //delete piece = captured
               board[index]->set_piece(std::move(piece));    //replace with pawn
+              has_moved = true;
               return;
             }
           }
@@ -148,8 +149,12 @@ using namespace std;
               std::unique_ptr<Piece>& piece = board[index - 7]->get_piece();
               board[index]->set_piece(nullptr);
               board[index]->set_piece(std::move(piece));
+              has_moved = true;
               return;
             }
+          }
+          else{
+            return;
           }
         }
 
@@ -163,6 +168,7 @@ using namespace std;
               std::unique_ptr<Piece>& piece = board[index + 7]->get_piece();
               board[index]->set_piece(nullptr);
               board[index]->set_piece(std::move(piece));
+              has_moved = true;
               return;
             }
           }
@@ -173,8 +179,12 @@ using namespace std;
               std::unique_ptr<Piece>& piece = board[index + 9]->get_piece();
               board[index]->set_piece(nullptr);
               board[index]->set_piece(std::move(piece));
+              has_moved = true;
               return;
             }
+          }
+          else{
+            return;
           }
           
         }
@@ -194,6 +204,7 @@ using namespace std;
 
             std::unique_ptr<Piece>& piece = board[index - 8]->get_piece();
             board[index]->set_piece(std::move(piece));
+            has_moved = true;
             return;
           }
 
@@ -208,6 +219,10 @@ using namespace std;
 
             std::unique_ptr<Piece>& piece = board[index - 16]->get_piece();
             board[index]->set_piece(std::move(piece));
+            has_moved = true;
+            return;
+          }
+          else{
             return;
           }
         }
@@ -222,6 +237,7 @@ using namespace std;
 
             std::unique_ptr<Piece>& piece = board[index + 8]->get_piece();
             board[index]->set_piece(std::move(piece));
+            has_moved = true;
             return;
           }
 
@@ -236,6 +252,10 @@ using namespace std;
 
             std::unique_ptr<Piece>& piece = board[index + 16]->get_piece();
             board[index]->set_piece(std::move(piece));
+            has_moved = true;
+            return;
+          }
+          else{
             return;
           }
         }
@@ -254,6 +274,7 @@ using namespace std;
           board[index]->set_piece(nullptr);
           board[index]->set_piece(move(board[King_w_pos]->get_piece()));
           King_w_pos = index;
+          has_moved = true;
           return;
         }
         else if(white_move == false &&
@@ -265,7 +286,10 @@ using namespace std;
           board[index]->set_piece(nullptr);
           board[index]->set_piece(move(board[King_b_pos]->get_piece()));
           King_b_pos = index;
-
+          has_moved = true;
+          return;
+        }
+        else{
           return;
         }
       }
@@ -279,7 +303,7 @@ using namespace std;
           
           board[index]->set_piece(move(board[King_w_pos]->get_piece()));
           King_w_pos = index;
-
+          has_moved = true;
           return;
         }
         else if(white_move == false &&
@@ -290,14 +314,74 @@ using namespace std;
           
           board[index]->set_piece(move(board[King_b_pos]->get_piece()));
           King_b_pos = index;
-
+          has_moved = true;
+          return;
+        }
+        else{
           return;
         }
       }
     }
 
     void Board::Queen_handling(std::string input, bool white_move){
-
+      if(input[1] == 'x'){    //queen captures piece
+        int index = get_index(input[2], input[3]);
+        if(white_move == true &&
+          board[Queen_w_pos]->get_piece() &&
+          board[index]->get_piece() &&
+          board[Queen_w_pos]->get_piece()->type == 1 && 
+          check_q_index(index, Queen_w_pos) == true){
+          
+          board[index]->set_piece(nullptr);
+          board[index]->set_piece(move(board[Queen_w_pos]->get_piece()));
+          Queen_w_pos = index;
+          has_moved = true;
+          return;
+        }
+        else if(white_move == false &&
+          board[Queen_b_pos]->get_piece() &&
+          board[index]->get_piece() &&
+          board[Queen_b_pos]->get_piece()->type == 1 && 
+          check_q_index(index, Queen_b_pos) == true){
+          
+          board[index]->set_piece(nullptr);
+          board[index]->set_piece(move(board[Queen_b_pos]->get_piece()));
+          Queen_b_pos = index;
+          has_moved = true;
+          return;
+        }
+        else{
+          return;
+        }
+      }
+      else{   //normal King move
+        int index = get_index(input[1], input[2]);
+        if(white_move == true &&
+          board[Queen_w_pos]->get_piece() &&
+          !board[index]->get_piece() &&
+          board[Queen_w_pos]->get_piece()->type == 1 && 
+          check_q_index(index, Queen_w_pos) == true){
+          
+          board[index]->set_piece(move(board[Queen_w_pos]->get_piece()));
+          Queen_w_pos = index;
+          has_moved = true;
+          return;
+        }
+        else if(white_move == false &&
+          board[Queen_b_pos]->get_piece() &&
+          !board[index]->get_piece() &&
+          board[Queen_b_pos]->get_piece()->type == 1 && 
+          check_q_index(index, Queen_b_pos) == true){
+          
+          board[index]->set_piece(move(board[Queen_b_pos]->get_piece()));
+          Queen_b_pos = index;
+          has_moved = true;
+          return;
+        }
+        else{
+          return;
+        }
+      }
     }
 
     void Board::Rook_handling(std::string input, bool white_move){
@@ -339,6 +423,52 @@ using namespace std;
       return false; // Target index is not reachable by the King
     }
 
+    bool Board::check_q_index(int targ_index, int Q_pos){
+    static const int directions[8] = {-9, -8, -7, -1, 1, 7, 8, 9};
+
+    int start_row = Q_pos / 8;
+    int start_col = Q_pos % 8;
+
+    for(int dir : directions){
+        int current_pos = Q_pos;
+
+      while(true){
+        int next_pos = current_pos + dir;
+        if (next_pos < 0 || next_pos >= 64)
+          break;
+
+        int next_row = next_pos / 8;
+        int next_col = next_pos % 8;
+          // Prevent wrapping across rows
+        if(std::abs(next_row - current_pos / 8) > 1 && 
+          dir == -1 || dir == 1){
+          break;
+        }
+        if(std::abs(next_col - current_pos % 8) > 1 && 
+          (dir == -8 || dir == 8)){
+          break;
+        }
+          // Check if move wraps around edge
+        if(std::abs(next_row - start_row) > 7 || std::abs(next_col - start_col) > 7){
+          break;
+        }
+        current_pos = next_pos;
+
+          // Check if we reached the target
+        if(current_pos == targ_index){
+            return true;
+        }
+
+          // Stop if a piece blocks the path
+        if(board[current_pos]->get_piece()){
+          break;
+        }
+      }
+    }
+
+    return false;
+}
+
     int Board::get_index(char letter, char number){
       int col =  1 + (letter -'a');
       int row = (number -'0');
@@ -361,18 +491,21 @@ using namespace std;
       std::string input;
       //bool is_legal;
       bool white_move = true;       //this tells the program who is to move
-      while(1){
-        print_board();
-
-        std::cin >> input;
-        if(input == "exit"){
-          std::cout << endl << endl;
-          break;
+      has_moved = false;
+      int a = 5;
+      while( a != 2){
+        while(has_moved == false){
+          print_board();
+          std::cin >> input;
+          if(input == "exit"){
+            std::cout << endl << endl;
+            a = 2;
+            break;
+          }
+          move_check(input, white_move);
         }
-
-        move_check(input, white_move);
-
         white_move = !white_move;     //for the next turn, the other player has his turn
+        has_moved = false;
       }
     }
 

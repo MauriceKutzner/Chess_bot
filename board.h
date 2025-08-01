@@ -8,6 +8,7 @@
 #include "pieces.h"
 #include <string>
 #include <cctype>
+#include <vector>
 
 class Square;  //Forward declaration
 class Piece;
@@ -25,11 +26,15 @@ public:
     int get_index(char letter, char number);
     int get_col(char letter);
     int get_row(char number);
+    int index_to_row(int index);
+    int index_to_col(int index);
+
     void King_handling(std::string input, bool white_move);
     bool check_k_index(int targ_index, int K_pos);
     void Queen_handling(std::string input, bool white_move);
     bool check_q_index(int targ_index, int Q_pos);
     void Rook_handling(std::string input, bool white_move);
+    bool check_r_index(std::string input, bool white_move);
     void Bishop_handling(std::string input, bool white_move);
     void Knight_handling(std::string input, bool white_move);
     void pawn_handling(std::string input, bool white_move);
@@ -38,6 +43,16 @@ public:
 
 
 //private:
+    std::vector<int> white_rooks;
+    std::vector<int> white_queens;
+    std::vector<int> white_bishops;
+    std::vector<int> white_knights;
+
+
+    std::vector<int> black_rooks;
+    std::vector<int> black_queens;
+    std::vector<int> black_bishops;
+    std::vector<int> black_knights;
     std::array<std::unique_ptr<Square>, 64> board;
 
     bool has_moved;

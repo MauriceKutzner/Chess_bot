@@ -6,6 +6,7 @@
 #include "pieces.h"
 #include <string>
 #include <cctype>
+#include <vector>
 
 using namespace std;
 
@@ -29,24 +30,30 @@ using namespace std;
       King_b_pos = 60;
 
       board[3]->set_piece(std::make_unique<Queen>(true));
-      Queen_w_pos = 3;
+      white_queens = {3};
       board[59]->set_piece(std::make_unique<Queen>(false));
-      Queen_b_pos = 59;
+      black_queens = {59};
 
       board[0]->set_piece(std::make_unique<Rook>(true));
       board[7]->set_piece(std::make_unique<Rook>(true));
+      white_rooks  = {0, 7};
       board[56]->set_piece(std::make_unique<Rook>(false));
       board[63]->set_piece(std::make_unique<Rook>(false));
+      black_rooks = {56, 63};
 
       board[2]->set_piece(std::make_unique<Bishop>(true));
       board[5]->set_piece(std::make_unique<Bishop>(true));
+      white_bishops = {2, 5};
       board[58]->set_piece(std::make_unique<Bishop>(false));
       board[61]->set_piece(std::make_unique<Bishop>(false));
+      black_bishops = {58, 61};
 
       board[1]->set_piece(std::make_unique<Knight>(true));
       board[6]->set_piece(std::make_unique<Knight>(true));
+      white_knights = {1, 6};
       board[57]->set_piece(std::make_unique<Knight>(false));
       board[62]->set_piece(std::make_unique<Knight>(false));
+      black_knights = {57, 62};
 
       for(int i = 8;  i<16; i++){
         board[i]->set_piece(std::make_unique<Pawn>(true));
@@ -385,7 +392,34 @@ using namespace std;
     }
 
     void Board::Rook_handling(std::string input, bool white_move){
-      
+      if(input[1]== 'x' || input[2] == 'x'){      //Rook captures a piece
+
+      }
+      else{   //normal rook move
+        if(white_move == true){
+
+        
+          if(input.length()>3){ //case for several rooks being able to move to the same square
+
+          }
+          else{     //normal case for rook move
+            int index = get_index(input[1], input[2]);
+            int targ_row = get_row(input[1]);
+            int targ_col = get_col(input[2]);
+            for(int i : white_rooks){
+              if(index_to_col(i) == targ_col){  //target and rook on the same column
+                check_r_index(input, white_move);
+                return;
+              }
+              if(index_to_row(i) == targ_row){  //target and rook on the same row
+
+                return;
+              }
+            }
+          }
+        
+      }
+      }
     }
     void Board::Bishop_handling(std::string input, bool white_move){
       
@@ -393,6 +427,13 @@ using namespace std;
 
     void Board::Knight_handling(std::string input, bool white_move){
       
+    }
+
+    int Board::index_to_row(int index){
+      return (1 + (index / 8));
+    }
+    int Board::index_to_col(int index){
+      return (1 + (index % 8));
     }
 
     bool Board::check_k_index(int targ_index, int K_pos){
@@ -468,6 +509,11 @@ using namespace std;
 
     return false;
 }
+
+
+    bool Board::check_r_index(std::string input, bool white_move){
+      return true;
+    }
 
     int Board::get_index(char letter, char number){
       int col =  1 + (letter -'a');

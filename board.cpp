@@ -393,34 +393,286 @@ using namespace std;
 
     void Board::Rook_handling(std::string input, bool white_move){
       if(input[1]== 'x' || input[2] == 'x'){      //Rook captures a piece
+        
+        if(input.length() > 4){   //case for Rdxd5
 
+          /*White Turn*/
+
+          if(white_move == true){
+            if(('1' <= input[1] && input[1] <= '8') || ('a' <= input[1] && input[1]<= 'h')){   //case for moves like R1d7
+              int index = get_index(input[3], input[4]);
+              int targ_row = get_row(input[3]);
+              int targ_col = get_col(input[4]);
+              auto& rooks = get_rook_list(white_move);
+              for(int& i : rooks){
+
+                if(isdigit(input[1])){          //check which rook has to be selected based on given row
+                  int disamb_row = get_row(input[1]);
+                  if (index_to_row(i) != disamb_row){
+                    continue;
+                  }
+                }
+
+                else if(isalpha(input[1])){     //check which rook has to be selected based on given column
+                  int disamb_col = get_col(input[1]);
+                  if (index_to_col(i) != disamb_col){
+                    continue;
+                  }
+                }
+
+                if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
+                  if(is_valid_rook_move(i, index, true)){
+
+                    board[index]->set_piece(nullptr);
+                    board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
+                    i = index;    //update white_rooks
+                    has_moved = true;
+                    return;
+                  }
+                }
+              }
+            }
+          }
+
+          /*Black Turn*/
+
+          if(white_move == false){
+            if(('1' <= input[1] && input[1] <= '8') || ('a' <= input[1] && input[1]<= 'h')){   //case for moves like R1d7
+              int index = get_index(input[3], input[4]);
+              int targ_row = get_row(input[3]);
+              int targ_col = get_col(input[4]);
+              auto& rooks = get_rook_list(white_move);
+
+              for(int& i : rooks){
+
+                if(isdigit(input[1])){          //check which rook has to be selected based on given row
+                  int disamb_row = get_row(input[1]);
+                  if (index_to_row(i) != disamb_row){
+                    continue;
+                  }
+                }
+
+                else if(isalpha(input[1])){     //check which rook has to be selected based on given column
+                  int disamb_col = get_col(input[1]);
+                  if (index_to_col(i) != disamb_col){
+                    continue;
+                  }
+                }
+
+                if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
+                  if(is_valid_rook_move(i, index, true)){
+                    board[index]->set_piece(nullptr);
+                    board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
+                    i = index;    //update black_rooks
+                    has_moved = true;
+                    return;
+                  }
+                }
+              }
+            }
+          }
+        }
+        else if(input.length() == 4){   //case for Rxd5
+
+          /*White Turn*/
+
+          if(white_move == true){
+            int index = get_index(input[2], input[3]);
+            int targ_row = get_row(input[2]);
+            int targ_col = get_col(input[3]);
+            auto& rooks = get_rook_list(white_move);
+
+            for(int& i : rooks){
+              if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
+                if(is_valid_rook_move(i, index, true)){
+                  board[index]->set_piece(nullptr);
+                  board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
+                  i = index;    //update white_rooks
+                  has_moved = true;
+                  return;
+                }
+              }
+            }            
+          }
+
+
+          /*Black Turn*/
+
+          else if(white_move == false){
+            int index = get_index(input[2], input[3]);
+            int targ_row = get_row(input[2]);
+            int targ_col = get_col(input[3]);
+            auto& rooks = get_rook_list(white_move);
+
+            for(int& i : rooks){
+              if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
+                if(is_valid_rook_move(i, index, true)){
+                  board[index]->set_piece(nullptr);
+                  board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
+                  i = index;    //update black_rooks
+                  has_moved = true;
+                  return;
+                }
+              }
+            }  
+          }
+        }
       }
+
       else{   //normal rook move
+
+        /*White Turn*/
+
         if(white_move == true){
 
-        
           if(input.length()>3){ //case for several rooks being able to move to the same square
 
+            if(('1' <= input[1] && input[1] <= '8') || ('a' <= input[1] && input[1]<= 'h')){   //case for moves like R1d7
+              int index = get_index(input[2], input[3]);
+              int targ_row = get_row(input[2]);
+              int targ_col = get_col(input[3]);
+              auto& rooks = get_rook_list(white_move);
+
+              for(int& i : rooks){
+
+                if(isdigit(input[1])){          //check which rook has to be selected based on given row
+                  int disamb_row = get_row(input[1]);
+                  if (index_to_row(i) != disamb_row){
+                    continue;
+                  }
+                }
+
+                else if(isalpha(input[1])){     //check which rook has to be selected based on given column
+                  int disamb_col = get_col(input[1]);
+                  if (index_to_col(i) != disamb_col){
+                    continue;
+                  }
+                }
+
+                if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
+                  if(is_valid_rook_move(i, index, false)){
+                    
+                    board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
+                    i = index;    //update white_rooks
+                    has_moved = true;
+                    return;
+                  }
+                }
+              }
+            }
           }
+
           else{     //normal case for rook move
             int index = get_index(input[1], input[2]);
             int targ_row = get_row(input[1]);
             int targ_col = get_col(input[2]);
-            for(int i : white_rooks){
-              if(index_to_col(i) == targ_col){  //target and rook on the same column
-                check_r_index(input, white_move);
-                return;
-              }
-              if(index_to_row(i) == targ_row){  //target and rook on the same row
+            auto& rooks = get_rook_list(white_move);
 
-                return;
+            for(int& i : rooks){
+              if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
+                if(is_valid_rook_move(i, index, false)){
+                  
+                  board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
+                  i = index;    //update white_rooks
+                  has_moved = true;
+                  return;
+                }
               }
             }
           }
-        
-      }
+        }
+
+        /*Black Turn*/
+
+        else if(white_move == false){
+
+          if(input.length()>3){ //case for several rooks being able to move to the same square
+
+            if(('1' <= input[1] && input[1] <= '8') || ('a' <= input[1] && input[1]<= 'h')){   //case for moves like R1d7
+              int index = get_index(input[2], input[3]);
+              int targ_row = get_row(input[2]);
+              int targ_col = get_col(input[3]);
+              auto& rooks = get_rook_list(white_move);
+
+              for(int& i : rooks){
+                if(isdigit(input[1])){          //check which rook has to be selected based on given row
+                  int disamb_row = get_row(input[1]);
+                  if (index_to_row(i) != disamb_row){
+                    continue;
+                  }
+                }
+
+                else if(isalpha(input[1])){     //check which rook has to be selected based on given column
+                  int disamb_col = get_col(input[1]);
+                  if (index_to_col(i) != disamb_col){
+                    continue;
+                  }
+                }
+
+                if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
+                  if(is_valid_rook_move(i, index, false)){
+                    
+                    board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
+                    i = index;    //update black_rooks
+                    has_moved = true;
+                    return;
+                  }
+                }
+              }
+            }
+          }
+
+          else{     //normal case for rook move
+            int index = get_index(input[1], input[2]);
+            int targ_row = get_row(input[1]);
+            int targ_col = get_col(input[2]);
+            auto& rooks = get_rook_list(white_move);
+
+            for(int& i : rooks){
+              if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
+                if(is_valid_rook_move(i, index, false)){
+                  
+                  board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
+                  i = index;    //update black_rooks
+                  has_moved = true;
+                  return;
+                }
+              }
+            }
+          }
+        }
       }
     }
+
+    std::vector<int>& Board::get_rook_list(bool white_move){
+      return white_move ? white_rooks : black_rooks;
+    }
+
+    bool Board::is_valid_rook_move(int from, int to, bool is_capture){
+
+      if(is_capture && 
+        board[from]->get_piece() &&
+        board[to]->get_piece() && 
+        board[from]->get_piece()->type == 2 &&
+        check_r_index(to, from) == true){   
+
+        return true;
+      }
+
+      else if(!is_capture && 
+        board[from]->get_piece() &&
+        board[to]->get_piece() == nullptr && 
+        board[from]->get_piece()->type == 2 &&
+        check_r_index(to, from) == true){
+        
+        return true;
+      }
+
+      else{
+        return false;
+      }
+    }
+
     void Board::Bishop_handling(std::string input, bool white_move){
       
     }
@@ -464,56 +716,118 @@ using namespace std;
       return false; // Target index is not reachable by the King
     }
 
-    bool Board::check_q_index(int targ_index, int Q_pos){
-    static const int directions[8] = {-9, -8, -7, -1, 1, 7, 8, 9};
+    bool Board::check_q_index(int targ_index, int Q_pos) {
+      static const int directions[8] = {-9, -8, -7, -1, 1, 7, 8, 9};
 
-    int start_row = Q_pos / 8;
-    int start_col = Q_pos % 8;
-
-    for(int dir : directions){
+      for(int dir : directions){
         int current_pos = Q_pos;
 
-      while(true){
-        int next_pos = current_pos + dir;
-        if (next_pos < 0 || next_pos >= 64)
-          break;
+        while(true){
+          int next_pos = current_pos + dir;
 
-        int next_row = next_pos / 8;
-        int next_col = next_pos % 8;
-          // Prevent wrapping across rows
-        if(std::abs(next_row - current_pos / 8) > 1 && 
-          dir == -1 || dir == 1){
-          break;
-        }
-        if(std::abs(next_col - current_pos % 8) > 1 && 
-          (dir == -8 || dir == 8)){
-          break;
-        }
-          // Check if move wraps around edge
-        if(std::abs(next_row - start_row) > 7 || std::abs(next_col - start_col) > 7){
-          break;
-        }
-        current_pos = next_pos;
+          // Bounds check
+          if(next_pos < 0 || next_pos >= 64){
+            break;
+          }
+          int curr_row = current_pos / 8;
+          int next_row = next_pos / 8;
 
-          // Check if we reached the target
-        if(current_pos == targ_index){
+          // Row wrap check for horizontal movement
+          if((dir == -1 || dir == 1) && next_row != curr_row){
+            break;
+          }
+          // Row wrap check for diagonal movement (only needed for dirs that aren't purely vertical)
+          if((dir == -9 || dir == -7 || dir == 7 || dir == 9) &&
+            std::abs((next_pos % 8) - (current_pos % 8)) != 1){
+
+            break;
+          }
+          current_pos = next_pos;
+
+          if(current_pos == targ_index){
             return true;
-        }
-
-          // Stop if a piece blocks the path
-        if(board[current_pos]->get_piece()){
-          break;
+          }
+          if(board[current_pos]->get_piece()){
+            break;
+          } 
         }
       }
+      return false;
     }
 
-    return false;
-}
 
+    bool Board::check_r_index(int targ_index, int R_pos) {
+      static const int directions[4] = {-8, -1, 1, 8};  // up, left, right, down
 
-    bool Board::check_r_index(std::string input, bool white_move){
-      return true;
+      for(int dir : directions){
+      int current_pos = R_pos;
+
+        while(true){
+          int next_pos = current_pos + dir;
+
+          if(next_pos < 0 || next_pos >= 64){
+            break;
+          }
+
+          int curr_row = current_pos / 8;
+          int next_row = next_pos / 8;
+
+          // Row wrap check for horizontal movement
+          if((dir == -1 || dir == 1) && next_row != curr_row){
+            break;
+          }
+
+          current_pos = next_pos;
+
+          if(current_pos == targ_index){
+            return true;
+          }
+
+          if(board[current_pos]->get_piece()){
+            break;
+          }
+        }
+      }
+
+      return false;
     }
+
+    bool Board::check_b_index(int targ_index, int B_pos){
+      static const int directions[4] = {-9, -7, 7, 9};  // diagonal directions
+
+      for(int dir : directions){
+        int current_pos = B_pos;
+
+        while(true){
+          int next_pos = current_pos + dir;
+
+          if(next_pos < 0 || next_pos >= 64){
+            break;
+          }
+
+          int curr_col = current_pos % 8;
+          int next_col = next_pos % 8;
+
+          // Column wrap check for diagonal movement
+          if(std::abs(next_col - curr_col) != 1){
+            break;
+          }
+
+          current_pos = next_pos;
+
+          if(current_pos == targ_index){
+            return true;
+          }
+
+          if(board[current_pos]->get_piece()){
+            break;
+          }
+        }
+      }
+
+      return false;
+    }
+    
 
     int Board::get_index(char letter, char number){
       int col =  1 + (letter -'a');

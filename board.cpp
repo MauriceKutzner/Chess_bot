@@ -421,7 +421,7 @@ using namespace std;
                 }
 
                 if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
-                  if(is_valid_rook_move(i, index, true)){
+                  if(is_valid_rook_move(i, index, true, white_move)){
 
                     board[index]->set_piece(nullptr);
                     board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
@@ -460,7 +460,7 @@ using namespace std;
                 }
 
                 if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
-                  if(is_valid_rook_move(i, index, true)){
+                  if(is_valid_rook_move(i, index, true, white_move)){
                     board[index]->set_piece(nullptr);
                     board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
                     i = index;    //update black_rooks
@@ -484,7 +484,7 @@ using namespace std;
 
             for(int& i : rooks){
               if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
-                if(is_valid_rook_move(i, index, true)){
+                if(is_valid_rook_move(i, index, true, white_move)){
                   board[index]->set_piece(nullptr);
                   board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
                   i = index;    //update white_rooks
@@ -506,7 +506,7 @@ using namespace std;
 
             for(int& i : rooks){
               if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
-                if(is_valid_rook_move(i, index, true)){
+                if(is_valid_rook_move(i, index, true, white_move)){
                   board[index]->set_piece(nullptr);
                   board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
                   i = index;    //update black_rooks
@@ -550,7 +550,7 @@ using namespace std;
                 }
 
                 if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
-                  if(is_valid_rook_move(i, index, false)){
+                  if(is_valid_rook_move(i, index, false, white_move)){
                     
                     board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
                     i = index;    //update white_rooks
@@ -570,7 +570,7 @@ using namespace std;
 
             for(int& i : rooks){
               if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
-                if(is_valid_rook_move(i, index, false)){
+                if(is_valid_rook_move(i, index, false, white_move)){
                   
                   board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
                   i = index;    //update white_rooks
@@ -610,7 +610,7 @@ using namespace std;
                 }
 
                 if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
-                  if(is_valid_rook_move(i, index, false)){
+                  if(is_valid_rook_move(i, index, false, white_move)){
                     
                     board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
                     i = index;    //update black_rooks
@@ -630,7 +630,7 @@ using namespace std;
 
             for(int& i : rooks){
               if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
-                if(is_valid_rook_move(i, index, false)){
+                if(is_valid_rook_move(i, index, false, white_move)){
                   
                   board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
                   i = index;    //update black_rooks
@@ -648,42 +648,192 @@ using namespace std;
       return white_move ? white_rooks : black_rooks;
     }
 
-    bool Board::is_valid_rook_move(int from, int to, bool is_capture){
+    std::vector<int>& Board::get_bishop_list(bool white_move){
+      return white_move ? white_bishops : black_bishops;
+    }
 
-      if(is_capture && 
-        board[from]->get_piece() &&
-        board[to]->get_piece() && 
-        board[from]->get_piece()->type == 2 &&
-        check_r_index(to, from) == true){   
+    std::vector<int>& Board::get_knight_list(bool white_move){
+      return white_move ? white_knights : black_knights;
+    }
 
-        return true;
+    bool Board::is_valid_rook_move(int from, int to, bool is_capture, bool white_move){
+
+      if(!board[from]->get_piece()){
+        return false; // No piece to move
       }
 
-      else if(!is_capture && 
-        board[from]->get_piece() &&
-        board[to]->get_piece() == nullptr && 
-        board[from]->get_piece()->type == 2 &&
-        check_r_index(to, from) == true){
-        
-        return true;
-      }
+      std::unique_ptr<Piece>& piece = board[from]->get_piece();
 
-      else{
+      // Must be a rook of the correct side
+      if(piece->type != 2 || piece->color != white_move){
         return false;
+      }
+
+    // Must be a legal rook move
+      if(!check_r_index(to, from)){
+        return false;
+      }
+
+      if(is_capture){
+        // Capture must be against the opposite color
+        return board[to]->get_piece() &&
+               board[to]->get_piece()->color != white_move;
+      } 
+      else{
+        // Non-capture must land on an empty square
+        return board[to]->get_piece() == nullptr;
+      }
+    }
+
+    bool Board::is_valid_bishop_move(int from, int to, bool is_capture, bool white_move){
+
+      if(!board[from]->get_piece()){
+        return false; // No piece to move
+      }
+
+      std::unique_ptr<Piece>& piece = board[from]->get_piece();
+
+      // Must be a rook of the correct side
+      if(piece->type != 3 || piece->color != white_move){
+        return false;
+      }
+
+    // Must be a legal rook move
+      if(!check_b_index(to, from)){
+        return false;
+      }
+
+      if(is_capture){
+        // Capture must be against the opposite color
+        return board[to]->get_piece() &&
+               board[to]->get_piece()->color != white_move;
+      } 
+      else{
+        // Non-capture must land on an empty square
+        return board[to]->get_piece() == nullptr;
+      }
+    }
+
+    bool Board::is_valid_knight_move(int from, int to, bool is_capture, bool white_move){
+
+      if(!board[from]->get_piece()){
+        return false; // No piece to move
+      }
+
+      std::unique_ptr<Piece>& piece = board[from]->get_piece();
+
+      // Must be a rook of the correct side
+      if(piece->type != 4 || piece->color != white_move){
+        return false;
+      }
+
+    // Must be a legal rook move
+      if(!check_n_index(to, from)){
+        return false;
+      }
+
+      if(is_capture){
+        // Capture must be against the opposite color
+        return board[to]->get_piece() &&
+               board[to]->get_piece()->color != white_move;
+      } 
+      else{
+        // Non-capture must land on an empty square
+        return board[to]->get_piece() == nullptr;
       }
     }
 
     void Board::Bishop_handling(std::string input, bool white_move){
+      bool is_capture = (input[1] == 'x');
+     
+      int index = is_capture
+        ? get_index(input[2], input[3]) // capture: skip 'x'
+        : get_index(input[1], input[2]); // normal move    
+
+      auto& bishops = get_bishop_list(white_move);
+
+      for(int& i : bishops){
+        if(is_valid_bishop_move(i, index, is_capture, white_move)){ 
+          if(is_capture == true){
+            board[index]->set_piece(nullptr);
+          }
+          board[index]->set_piece(move(board[i]->get_piece()));              
+          i = index;      //update the position of the bishops
+          has_moved = true;
+          return;
+        }
       
-    }
+      }
+      return;
+    } 
+    
 
     void Board::Knight_handling(std::string input, bool white_move){
-      
+      bool is_capture = false;
+      int target_file_idx = 1;  // index in input for target file letter
+      int target_rank_idx = 2;  // index in input for target rank number
+
+      if(input.length() == 4 && input[1] == 'x'){
+        // Nxf3 style
+        is_capture = true;
+      }
+      else if(input.length() == 4 && input[2] == 'x'){
+        // Nfd3 style (disambiguation + capture)
+        is_capture = true;
+        target_file_idx = 3;
+        target_rank_idx = 4;
+      }
+      else if(input.length() == 3){
+        // Nf3 style (simple move)
+        // indices already set
+      }
+      else if(input.length() == 4 && input[2] != 'x'){
+        // Nfd3 style (disambiguation no capture)
+        target_file_idx = 2;
+        target_rank_idx = 3;
+      }
+
+      // Extract target index from input, e.g. 'f3' = file 'f', rank '3'
+      int index = get_index(input[target_file_idx], input[target_rank_idx]);
+      auto& knights = get_knight_list(white_move);
+
+      // For disambiguation: file or rank of the from-square may be given
+      char disambig_file = '\0';
+      char disambig_rank = '\0';
+
+      if(input.length() >= 4 && input[1] != 'x'){
+        // If there's a disambiguation char, it will be at input[1]
+        if (input[1] >= 'a' && input[1] <= 'h') disambig_file = input[1];
+        else if (input[1] >= '1' && input[1] <= '8') disambig_rank = input[1];
+      }
+
+      for(int& i : knights){
+        // Check disambiguation matches if present
+        int from_file = (i % 8) + 'a';
+        int from_rank = (i / 8) + '1';
+
+        if((disambig_file != '\0' && disambig_file != from_file) ||
+          (disambig_rank != '\0' && disambig_rank != from_rank)){
+          continue;
+        }
+
+        if(is_valid_knight_move(i, index, is_capture, white_move)){
+          if (is_capture) {
+              board[index]->set_piece(nullptr);
+          }
+          board[index]->set_piece(std::move(board[i]->get_piece()));
+          i = index;
+          has_moved = true;
+          return;
+        }
+      }
     }
+    
 
     int Board::index_to_row(int index){
       return (1 + (index / 8));
     }
+
     int Board::index_to_col(int index){
       return (1 + (index % 8));
     }
@@ -756,7 +906,7 @@ using namespace std;
     }
 
 
-    bool Board::check_r_index(int targ_index, int R_pos) {
+    bool Board::check_r_index(int targ_index, int R_pos){
       static const int directions[4] = {-8, -1, 1, 8};  // up, left, right, down
 
       for(int dir : directions){
@@ -828,6 +978,32 @@ using namespace std;
       return false;
     }
     
+    bool Board::check_n_index(int targ_index, int N_pos){
+      static const int jumps[8] = {-17, -15, -10, -6, 6, 10, 15, 17};
+
+      int start_row = N_pos / 8;
+      int start_col = N_pos % 8;
+
+      for(int j : jumps){
+        int next_pos = N_pos + j;
+
+        if(next_pos < 0 || next_pos >= 64){
+          continue;
+        }
+
+        int next_row = next_pos / 8;
+        int next_col = next_pos % 8;
+
+        if((std::abs(next_row - start_row) == 2 && std::abs(next_col - start_col) == 1) ||
+          (std::abs(next_row - start_row) == 1 && std::abs(next_col - start_col) == 2)){
+          if(next_pos == targ_index){
+            return true;
+          }
+        }
+      }
+
+      return false;
+    }
 
     int Board::get_index(char letter, char number){
       int col =  1 + (letter -'a');

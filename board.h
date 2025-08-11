@@ -34,15 +34,21 @@ public:
     void Queen_handling(std::string input, bool white_move);
     bool check_q_index(int targ_index, int Q_pos);
     void Rook_handling(std::string input, bool white_move);
-    bool is_valid_rook_move(int from, int to, bool is_capture);
+
+    bool is_valid_rook_move(int from, int to, bool is_capture, bool white_move);
+    bool is_valid_bishop_move(int from, int to, bool is_capture, bool white_move);
+    bool is_valid_knight_move(int from, int to, bool is_capture, bool white_move);
+
     std::vector<int>& get_rook_list(bool white_move);
+    std::vector<int>& get_bishop_list(bool white_move);
+    std::vector<int>& get_knight_list(bool white_move);
+
     bool check_r_index(int targ_index, int R_pos);
     void Bishop_handling(std::string input, bool white_move);
     bool check_b_index(int targ_index, int B_pos);
     void Knight_handling(std::string input, bool white_move);
     bool check_n_index(int targ_index, int N_pos);
     void pawn_handling(std::string input, bool white_move);
-
 
 
 

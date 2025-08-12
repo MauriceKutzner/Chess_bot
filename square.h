@@ -17,10 +17,7 @@ public:
     void make_queen();
     void make_empty();
 */
-    bool return_sq_color();
     void set_sq_color(bool col);
-    bool return_is_empty();
-    int return_sq_index();
     void set_piece(std::unique_ptr<Piece> newPiece);
     std::unique_ptr<Piece>& get_piece();
     

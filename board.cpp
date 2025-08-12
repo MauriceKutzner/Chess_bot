@@ -67,8 +67,6 @@ using namespace std;
       
     }
 
-    //void switch_board(){}
-
     void Board::print_board(){  
       std::cout << endl << "    A   B   C   D   E   F   G   H "<< endl << "  ---------------------------------" << endl << 1;
       for(int i = 0 ; i<64; i++){
@@ -396,9 +394,6 @@ using namespace std;
         
         if(input.length() > 4){   //case for Rdxd5
 
-          /*White Turn*/
-
-          if(white_move == true){
             if(('1' <= input[1] && input[1] <= '8') || ('a' <= input[1] && input[1]<= 'h')){   //case for moves like R1d7
               int index = get_index(input[3], input[4]);
               int targ_row = get_row(input[3]);
@@ -432,51 +427,10 @@ using namespace std;
                 }
               }
             }
-          }
-
-          /*Black Turn*/
-
-          if(white_move == false){
-            if(('1' <= input[1] && input[1] <= '8') || ('a' <= input[1] && input[1]<= 'h')){   //case for moves like R1d7
-              int index = get_index(input[3], input[4]);
-              int targ_row = get_row(input[3]);
-              int targ_col = get_col(input[4]);
-              auto& rooks = get_rook_list(white_move);
-
-              for(int& i : rooks){
-
-                if(isdigit(input[1])){          //check which rook has to be selected based on given row
-                  int disamb_row = get_row(input[1]);
-                  if (index_to_row(i) != disamb_row){
-                    continue;
-                  }
-                }
-
-                else if(isalpha(input[1])){     //check which rook has to be selected based on given column
-                  int disamb_col = get_col(input[1]);
-                  if (index_to_col(i) != disamb_col){
-                    continue;
-                  }
-                }
-
-                if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
-                  if(is_valid_rook_move(i, index, true, white_move)){
-                    board[index]->set_piece(nullptr);
-                    board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
-                    i = index;    //update black_rooks
-                    has_moved = true;
-                    return;
-                  }
-                }
-              }
-            }
-          }
         }
+
         else if(input.length() == 4){   //case for Rxd5
 
-          /*White Turn*/
-
-          if(white_move == true){
             int index = get_index(input[2], input[3]);
             int targ_row = get_row(input[2]);
             int targ_col = get_col(input[3]);
@@ -493,37 +447,11 @@ using namespace std;
                 }
               }
             }            
-          }
-
-
-          /*Black Turn*/
-
-          else if(white_move == false){
-            int index = get_index(input[2], input[3]);
-            int targ_row = get_row(input[2]);
-            int targ_col = get_col(input[3]);
-            auto& rooks = get_rook_list(white_move);
-
-            for(int& i : rooks){
-              if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
-                if(is_valid_rook_move(i, index, true, white_move)){
-                  board[index]->set_piece(nullptr);
-                  board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
-                  i = index;    //update black_rooks
-                  has_moved = true;
-                  return;
-                }
-              }
-            }  
-          }
+          
         }
       }
 
       else{   //normal rook move
-
-        /*White Turn*/
-
-        if(white_move == true){
 
           if(input.length()>3){ //case for several rooks being able to move to the same square
 
@@ -580,66 +508,90 @@ using namespace std;
               }
             }
           }
+      }
+    }
+
+    void Board::Bishop_handling(std::string input, bool white_move){
+      bool is_capture = (input[1] == 'x');
+     
+      int index = is_capture
+        ? get_index(input[2], input[3]) // capture: skip 'x'
+        : get_index(input[1], input[2]); // normal move    
+
+      auto& bishops = get_bishop_list(white_move);
+
+      for(int& i : bishops){
+        if(is_valid_bishop_move(i, index, is_capture, white_move)){ 
+          if(is_capture == true){
+            board[index]->set_piece(nullptr);
+          }
+          board[index]->set_piece(move(board[i]->get_piece()));              
+          i = index;      //update the position of the bishops
+          has_moved = true;
+          return;
+        }
+      
+      }
+      return;
+    } 
+    
+    void Board::Knight_handling(std::string input, bool white_move){
+      bool is_capture = false;
+      int target_file_idx = 1;  // index in input for target file letter
+      int target_rank_idx = 2;  // index in input for target rank number
+
+      if(input.length() == 4 && input[1] == 'x'){
+        // Nxf3 style
+        is_capture = true;
+      }
+      else if(input.length() == 4 && input[2] == 'x'){
+        // Nfxd3 style (disambiguation + capture)
+        is_capture = true;
+        target_file_idx = 3;
+        target_rank_idx = 4;
+      }
+      else if(input.length() == 3){
+        // Nf3 style (simple move)
+        // indices already set
+      }
+      else if(input.length() == 4 && input[2] != 'x'){
+        // Nfd3 style (disambiguation no capture)
+        target_file_idx = 2;
+        target_rank_idx = 3;
+      }
+
+      // Extract target index from input, e.g. 'f3' = file 'f', rank '3'
+      int index = get_index(input[target_file_idx], input[target_rank_idx]);
+      auto& knights = get_knight_list(white_move);
+
+      // For disambiguation: file or rank of the from-square may be given
+      char disambig_file = '\0';
+      char disambig_rank = '\0';
+
+      if(input.length() >= 4 && input[1] != 'x'){
+        // If there's a disambiguation char, it will be at input[1]
+        if (input[1] >= 'a' && input[1] <= 'h') disambig_file = input[1];
+        else if (input[1] >= '1' && input[1] <= '8') disambig_rank = input[1];
+      }
+
+      for(int& i : knights){
+        // Check disambiguation matches if present
+        int from_file = (i % 8) + 'a';
+        int from_rank = (i / 8) + '1';
+
+        if((disambig_file != '\0' && disambig_file != from_file) ||
+          (disambig_rank != '\0' && disambig_rank != from_rank)){
+          continue;
         }
 
-        /*Black Turn*/
-
-        else if(white_move == false){
-
-          if(input.length()>3){ //case for several rooks being able to move to the same square
-
-            if(('1' <= input[1] && input[1] <= '8') || ('a' <= input[1] && input[1]<= 'h')){   //case for moves like R1d7
-              int index = get_index(input[2], input[3]);
-              int targ_row = get_row(input[2]);
-              int targ_col = get_col(input[3]);
-              auto& rooks = get_rook_list(white_move);
-
-              for(int& i : rooks){
-                if(isdigit(input[1])){          //check which rook has to be selected based on given row
-                  int disamb_row = get_row(input[1]);
-                  if (index_to_row(i) != disamb_row){
-                    continue;
-                  }
-                }
-
-                else if(isalpha(input[1])){     //check which rook has to be selected based on given column
-                  int disamb_col = get_col(input[1]);
-                  if (index_to_col(i) != disamb_col){
-                    continue;
-                  }
-                }
-
-                if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
-                  if(is_valid_rook_move(i, index, false, white_move)){
-                    
-                    board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
-                    i = index;    //update black_rooks
-                    has_moved = true;
-                    return;
-                  }
-                }
-              }
-            }
+        if(is_valid_knight_move(i, index, is_capture, white_move)){
+          if(is_capture){
+            board[index]->set_piece(nullptr);
           }
-
-          else{     //normal case for rook move
-            int index = get_index(input[1], input[2]);
-            int targ_row = get_row(input[1]);
-            int targ_col = get_col(input[2]);
-            auto& rooks = get_rook_list(white_move);
-
-            for(int& i : rooks){
-              if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
-                if(is_valid_rook_move(i, index, false, white_move)){
-                  
-                  board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
-                  i = index;    //update black_rooks
-                  has_moved = true;
-                  return;
-                }
-              }
-            }
-          }
+          board[index]->set_piece(std::move(board[i]->get_piece()));
+          i = index;
+          has_moved = true;
+          return;
         }
       }
     }
@@ -743,100 +695,7 @@ using namespace std;
       }
     }
 
-    void Board::Bishop_handling(std::string input, bool white_move){
-      bool is_capture = (input[1] == 'x');
-     
-      int index = is_capture
-        ? get_index(input[2], input[3]) // capture: skip 'x'
-        : get_index(input[1], input[2]); // normal move    
 
-      auto& bishops = get_bishop_list(white_move);
-
-      for(int& i : bishops){
-        if(is_valid_bishop_move(i, index, is_capture, white_move)){ 
-          if(is_capture == true){
-            board[index]->set_piece(nullptr);
-          }
-          board[index]->set_piece(move(board[i]->get_piece()));              
-          i = index;      //update the position of the bishops
-          has_moved = true;
-          return;
-        }
-      
-      }
-      return;
-    } 
-    
-
-    void Board::Knight_handling(std::string input, bool white_move){
-      bool is_capture = false;
-      int target_file_idx = 1;  // index in input for target file letter
-      int target_rank_idx = 2;  // index in input for target rank number
-
-      if(input.length() == 4 && input[1] == 'x'){
-        // Nxf3 style
-        is_capture = true;
-      }
-      else if(input.length() == 4 && input[2] == 'x'){
-        // Nfd3 style (disambiguation + capture)
-        is_capture = true;
-        target_file_idx = 3;
-        target_rank_idx = 4;
-      }
-      else if(input.length() == 3){
-        // Nf3 style (simple move)
-        // indices already set
-      }
-      else if(input.length() == 4 && input[2] != 'x'){
-        // Nfd3 style (disambiguation no capture)
-        target_file_idx = 2;
-        target_rank_idx = 3;
-      }
-
-      // Extract target index from input, e.g. 'f3' = file 'f', rank '3'
-      int index = get_index(input[target_file_idx], input[target_rank_idx]);
-      auto& knights = get_knight_list(white_move);
-
-      // For disambiguation: file or rank of the from-square may be given
-      char disambig_file = '\0';
-      char disambig_rank = '\0';
-
-      if(input.length() >= 4 && input[1] != 'x'){
-        // If there's a disambiguation char, it will be at input[1]
-        if (input[1] >= 'a' && input[1] <= 'h') disambig_file = input[1];
-        else if (input[1] >= '1' && input[1] <= '8') disambig_rank = input[1];
-      }
-
-      for(int& i : knights){
-        // Check disambiguation matches if present
-        int from_file = (i % 8) + 'a';
-        int from_rank = (i / 8) + '1';
-
-        if((disambig_file != '\0' && disambig_file != from_file) ||
-          (disambig_rank != '\0' && disambig_rank != from_rank)){
-          continue;
-        }
-
-        if(is_valid_knight_move(i, index, is_capture, white_move)){
-          if (is_capture) {
-              board[index]->set_piece(nullptr);
-          }
-          board[index]->set_piece(std::move(board[i]->get_piece()));
-          i = index;
-          has_moved = true;
-          return;
-        }
-      }
-    }
-    
-
-    int Board::index_to_row(int index){
-      return (1 + (index / 8));
-    }
-
-    int Board::index_to_col(int index){
-      return (1 + (index % 8));
-    }
 
     bool Board::check_k_index(int targ_index, int K_pos){
       static const int offsets[8] = {-9, -8, -7, -1, 1, 7, 8, 9};
@@ -904,7 +763,6 @@ using namespace std;
       }
       return false;
     }
-
 
     bool Board::check_r_index(int targ_index, int R_pos){
       static const int directions[4] = {-8, -1, 1, 8};  // up, left, right, down
@@ -1005,6 +863,8 @@ using namespace std;
       return false;
     }
 
+
+
     int Board::get_index(char letter, char number){
       int col =  1 + (letter -'a');
       int row = (number -'0');
@@ -1023,6 +883,16 @@ using namespace std;
       return row;
     }
 
+    int Board::index_to_row(int index){
+      return (1 + (index / 8));
+    }
+
+    int Board::index_to_col(int index){
+      return (1 + (index % 8));
+    }
+
+
+    
     void Board::play_game(){
       std::string input;
       //bool is_legal;
@@ -1081,27 +951,11 @@ using namespace std;
           return ' ';
       }
     }
-  
-    bool Square::return_sq_color(){
-      return sq_color;
-    }
-
-    bool Square::return_is_empty(){
-      return is_empty;
-    }
-  
-    int Square::return_sq_index(){
-      return Square::sq_index;
-    }
 
 int main(){
   Board B;
 
   B.play_game();
 
-  //Piece * test_piece = board[10]->get_piece();
-  
-  
-  
   return 0;
 }

@@ -57,23 +57,22 @@ using namespace std;
 
       for(int i = 8;  i<16; i++){
         board[i]->set_piece(std::make_unique<Pawn>(true));
+        white_pawns.push_back(i);   //update pawn positons
       }
 
       for(int i = 48;  i<56; i++){
         board[i]->set_piece(std::make_unique<Pawn>(false));
-      }
-
-
-      
+        black_pawns.push_back(i);   //update pawn position
+      }      
     }
 
     void Board::print_board(){  
-      std::cout << endl << "    A   B   C   D   E   F   G   H "<< endl << "  ---------------------------------" << endl << 1;
+      std::cout << endl << "    A   B   C   D   E   F   G   H " << endl << "  ---------------------------------" << endl << 1;
       for(int i = 0 ; i<64; i++){
         
         if((i%8 == 0) && i != 0){
           std::cout << " |";
-          std::cout << endl << "  ---------------------------------" << endl << (i/8+1);
+          std::cout << " " << (i / 8 ) << endl << "  ---------------------------------" << endl << (i/8+1);
         }
           if (board[i]->get_piece()){
             if(board[i]->get_piece()->color == true){
@@ -89,7 +88,7 @@ using namespace std;
           }
       }
       std::cout << " |";
-          std::cout << endl << "  ---------------------------------" << endl<< endl;
+          std::cout << " 8" << endl << "  ---------------------------------" << endl<< "    A   B   C   D   E   F   G   H " << endl << endl ;
       
     }
 
@@ -125,200 +124,81 @@ using namespace std;
     }
 
     void Board::pawn_handling(std::string input, bool white_move){  //include en passent
-      if (input[1] == 'x'){     //case for a pawn capturing a piece
-        int index = get_index(input[2], input[3]);
-        int col_def = get_col(input[2]);
-        int col_att = get_col(input[0]);
 
-        if(white_move == true){   //for white pawns
+      bool is_capture = (input.find('x')!= std::string::npos);
+      auto& pawns = get_pawn_list(white_move);
 
-          if(col_def > col_att){
-
-            if(index - 9 >= 0 && board[index - 9]->get_piece() && 
-              board[index - 9]-> get_piece()->type == 5 && 
-              board[index - 9]->get_piece()->color == true){
-
-              std::unique_ptr<Piece>& piece = board[index - 9]->get_piece();    //select pawn as piece
-              board[index]->set_piece(nullptr);   //delete piece = captured
-              board[index]->set_piece(std::move(piece));    //replace with pawn
-              has_moved = true;
-              return;
-            }
-          }
-
-          if(col_def < col_att){
-
-            if(index - 7 >=0 && board[index - 7]->get_piece() 
-              && board[index - 7]-> get_piece()->type == 5 && board[index - 7]->get_piece()->color == true){
-
-              std::unique_ptr<Piece>& piece = board[index - 7]->get_piece();
+      if(input[input.size() - 2] == '='){    //promotion case
+        int index = get_index(input[input.size()-4], input[input.size()-3]);
+        cout << endl << "inside promotion loop" << index;
+        for(int& i : pawns){
+          if(is_valid_promotion(i, index, is_capture, white_move)){
+            cout <<endl <<  "valid promotion" << endl;
+            if(is_capture){
               board[index]->set_piece(nullptr);
-              board[index]->set_piece(std::move(piece));
-              has_moved = true;
-              return;
             }
-          }
-          else{
+
+            switch(input[input.size() - 1]){
+              case 'Q':
+                board[index]->set_piece(std::make_unique<Queen>(white_move));
+                board[i]->set_piece(nullptr);
+                (white_move ? white_queens : black_queens).push_back(index);
+                has_moved = true;
+                break;
+              case 'R':
+                board[index]->set_piece(std::make_unique<Rook>(white_move));
+                board[i]->set_piece(nullptr);
+                (white_move ? white_rooks : black_rooks).push_back(index);
+                has_moved = true;
+                break;
+              case 'B':
+                board[index]->set_piece(std::make_unique<Bishop>(white_move));
+                board[i]->set_piece(nullptr);
+                (white_move ? white_bishops : black_bishops).push_back(index);
+                has_moved = true;
+
+                break;
+              case 'N':
+                board[index]->set_piece(std::make_unique<Knight>(white_move));
+                board[i]->set_piece(nullptr);
+                (white_move ? white_knights : black_knights).push_back(index);
+                has_moved = true;
+                break;
+            }
             return;
           }
         }
+      }
+      int index = get_index(input[input.size()- 2], input[input.size() - 1]);
+      if(index_to_row(index) == 8){   //if the pawn is on the last row, it has to promote
+        return;
+      }
 
-        if(white_move == false){    //for black pawns
-
-          if(col_def > col_att){
-            if(index + 7 >= 0 && board[index + 7]->get_piece() && 
-              board[index + 7]-> get_piece()->type == 5 && 
-              board[index + 7]->get_piece()->color == false){
-
-              std::unique_ptr<Piece>& piece = board[index + 7]->get_piece();
-              board[index]->set_piece(nullptr);
-              board[index]->set_piece(std::move(piece));
-              has_moved = true;
-              return;
-            }
+      for(int& i : pawns){
+        if(is_valid_pawn_move(i, index, is_capture, white_move)){
+          if(is_capture){
+            board[index]->set_piece(nullptr);
           }
-          if(col_def < col_att){
-            if(index +9 >=0 && board[index +9]->get_piece() 
-              && board[index +9]-> get_piece()->type == 5 && board[index + 9]->get_piece()->color == false){
-
-              std::unique_ptr<Piece>& piece = board[index + 9]->get_piece();
-              board[index]->set_piece(nullptr);
-              board[index]->set_piece(std::move(piece));
-              has_moved = true;
-              return;
-            }
-          }
-          else{
-            return;
-          }
-          
-        }
-        else{
+          board[index]->set_piece(move(board[i]->get_piece()));
+          i = index;
+          has_moved = true;
           return;
         }
       }
-      else{     //for non-capture pawn moves
-        if (white_move){
-          int index = get_index(input[0], input[1]);
-
-          // Single move forward
-          if (index - 8 >= 0 && board[index - 8]->get_piece() &&
-            board[index - 8]->get_piece()->type == 5 &&
-            board[index]->get_piece() == nullptr &&
-            board[index - 8]->get_piece()->color == true){
-
-            std::unique_ptr<Piece>& piece = board[index - 8]->get_piece();
-            board[index]->set_piece(std::move(piece));
-            has_moved = true;
-            return;
-          }
-
-          // Double move from starting rank
-          if(get_row(input[1]) == 4 &&      //pawn has to be on starting row
-            index - 16 >= 0 && 
-            board[index - 8]->get_piece() == nullptr &&
-            board[index - 16]->get_piece() &&
-            board[index - 16]->get_piece()->type == 5 &&
-            board[index]->get_piece() == nullptr &&
-            board[index - 16]->get_piece()->color == true) {
-
-            std::unique_ptr<Piece>& piece = board[index - 16]->get_piece();
-            board[index]->set_piece(std::move(piece));
-            has_moved = true;
-            return;
-          }
-          else{
-            return;
-          }
-        }
-        if(white_move == false){      //for a black  pawn
-          int index = get_index(input[0], input[1]);
-
-          // Single move forward
-          if (index + 8 >= 0 && board[index + 8]->get_piece() &&
-            board[index + 8]->get_piece()->type == 5 &&
-            board[index]->get_piece() == nullptr && 
-            board[index + 8]->get_piece()->color == false){
-
-            std::unique_ptr<Piece>& piece = board[index + 8]->get_piece();
-            board[index]->set_piece(std::move(piece));
-            has_moved = true;
-            return;
-          }
-
-            // Double move from starting rank
-          if(get_row(input[1]) == 5 &&
-            index + 16 >= 0 && 
-            board[index + 8]->get_piece() == nullptr &&
-            board[index + 16]->get_piece() &&
-            board[index + 16]->get_piece()->type == 5 &&
-            board[index]->get_piece() == nullptr && 
-            board[index + 16]->get_piece()->color == false){
-
-            std::unique_ptr<Piece>& piece = board[index + 16]->get_piece();
-            board[index]->set_piece(std::move(piece));
-            has_moved = true;
-            return;
-          }
-          else{
-            return;
-          }
-        }
-      }
     }
+    
 
     void Board::King_handling(std::string input, bool white_move){
-      if(input[1] == 'x'){    //King captures piece
-        int index = get_index(input[2], input[3]);
-        if(white_move == true &&
-          board[King_w_pos]->get_piece() &&
-          board[index]->get_piece() &&
-          board[King_w_pos]->get_piece()->type == 0 && 
-          check_k_index(index, King_w_pos) == true){
-          
-          board[index]->set_piece(nullptr);
-          board[index]->set_piece(move(board[King_w_pos]->get_piece()));
-          King_w_pos = index;
-          has_moved = true;
-          return;
-        }
-        else if(white_move == false &&
-          board[King_b_pos]->get_piece() &&
-          board[index]->get_piece() &&
-          board[King_b_pos]->get_piece()->type == 0 && 
-          check_k_index(index, King_b_pos) == true){
-          
-          board[index]->set_piece(nullptr);
-          board[index]->set_piece(move(board[King_b_pos]->get_piece()));
-          King_b_pos = index;
-          has_moved = true;
-          return;
-        }
-        else{
-          return;
-        }
-      }
-      else{   //normal King move
+        bool is_capture = (input[1] == 'x');
         int index = get_index(input[1], input[2]);
-        if(white_move == true &&
-          board[King_w_pos]->get_piece() &&
-          !board[index]->get_piece() &&
-          board[King_w_pos]->get_piece()->type == 0 && 
-          check_k_index(index, King_w_pos) == true){
-          
-          board[index]->set_piece(move(board[King_w_pos]->get_piece()));
-          King_w_pos = index;
-          has_moved = true;
-          return;
-        }
-        else if(white_move == false &&
-          board[King_b_pos]->get_piece() &&
-          !board[index]->get_piece() &&
-          board[King_b_pos]->get_piece()->type == 0 && 
-          check_k_index(index, King_b_pos) == true){
-          
-          board[index]->set_piece(move(board[King_b_pos]->get_piece()));
-          King_b_pos = index;
+        int K_pos = (white_move ? King_w_pos : King_b_pos);   //selects correct king
+
+        if(is_valid_king_move(K_pos, index, is_capture, white_move)){
+          if(is_capture == true){
+            board[index]->set_piece(nullptr);
+          }
+          board[index]->set_piece(move(board[K_pos]->get_piece()));
+          (white_move ? King_w_pos : King_b_pos) = index;
           has_moved = true;
           return;
         }
@@ -326,188 +206,115 @@ using namespace std;
           return;
         }
       }
-    }
 
     void Board::Queen_handling(std::string input, bool white_move){
-      if(input[1] == 'x'){    //queen captures piece
-        int index = get_index(input[2], input[3]);
-        if(white_move == true &&
-          board[Queen_w_pos]->get_piece() &&
-          board[index]->get_piece() &&
-          board[Queen_w_pos]->get_piece()->type == 1 && 
-          check_q_index(index, Queen_w_pos) == true){
-          
-          board[index]->set_piece(nullptr);
-          board[index]->set_piece(move(board[Queen_w_pos]->get_piece()));
-          Queen_w_pos = index;
-          has_moved = true;
-          return;
+      bool is_capture = (input.find('x') != std::string::npos);   //detect capture
+
+      // Get the last two chars for target square
+      int index = get_index(input[input.size() - 2], input[input.size() - 1]);
+
+      // Extract disambiguation info if present (e.g., Qbd4 or Q3d4)
+      char disambig_file = '\0';
+      char disambig_rank = '\0';
+      if (input.size() > (is_capture ? 4 : 3)) {
+        // Example: Qbd4 or Qbxd4 → char after 'Q' but before 'x' or target square
+        int start_pos = 1; 
+        if (is_capture && input[1] == 'x'){
+          start_pos = 2;
         }
-        else if(white_move == false &&
-          board[Queen_b_pos]->get_piece() &&
-          board[index]->get_piece() &&
-          board[Queen_b_pos]->get_piece()->type == 1 && 
-          check_q_index(index, Queen_b_pos) == true){
-          
-          board[index]->set_piece(nullptr);
-          board[index]->set_piece(move(board[Queen_b_pos]->get_piece()));
-          Queen_b_pos = index;
-          has_moved = true;
-          return;
+        if (std::isalpha(input[start_pos])){
+          disambig_file = input[start_pos];
         }
-        else{
+        if (std::isdigit(input[start_pos])){
+          disambig_rank = input[start_pos];
+        }
+      }
+
+      // Get correct queen list
+      auto& queens = get_queen_list(white_move);
+
+      for(int& i : queens){
+        // Skip if disambiguation doesn't match
+        int from_file = (i % 8) + 'a';
+        int from_rank = (i / 8) + '1';
+        if((disambig_file != '\0' && disambig_file != from_file) ||
+          (disambig_rank != '\0' && disambig_rank != from_rank)){
+          continue;
+        }
+
+        if(is_valid_Queen_move(i, index, is_capture, white_move)){
+          if (is_capture) {
+            board[index]->set_piece(nullptr);
+          }
+          board[index]->set_piece(move(board[i]->get_piece()));
+          i = index; // update queen's stored position
+          has_moved = true;
           return;
         }
       }
-      else{   //normal King move
-        int index = get_index(input[1], input[2]);
-        if(white_move == true &&
-          board[Queen_w_pos]->get_piece() &&
-          !board[index]->get_piece() &&
-          board[Queen_w_pos]->get_piece()->type == 1 && 
-          check_q_index(index, Queen_w_pos) == true){
-          
-          board[index]->set_piece(move(board[Queen_w_pos]->get_piece()));
-          Queen_w_pos = index;
-          has_moved = true;
-          return;
-        }
-        else if(white_move == false &&
-          board[Queen_b_pos]->get_piece() &&
-          !board[index]->get_piece() &&
-          board[Queen_b_pos]->get_piece()->type == 1 && 
-          check_q_index(index, Queen_b_pos) == true){
-          
-          board[index]->set_piece(move(board[Queen_b_pos]->get_piece()));
-          Queen_b_pos = index;
-          has_moved = true;
-          return;
-        }
-        else{
-          return;
-        }
-      }
+    // If we get here, no queen made a valid move
     }
 
     void Board::Rook_handling(std::string input, bool white_move){
-      if(input[1]== 'x' || input[2] == 'x'){      //Rook captures a piece
-        
-        if(input.length() > 4){   //case for Rdxd5
+      bool is_capture = false;
+      int target_file_idx = 1;  // index in input for target file letter
+      int target_rank_idx = 2;  // index in input for target rank number
 
-            if(('1' <= input[1] && input[1] <= '8') || ('a' <= input[1] && input[1]<= 'h')){   //case for moves like R1d7
-              int index = get_index(input[3], input[4]);
-              int targ_row = get_row(input[3]);
-              int targ_col = get_col(input[4]);
-              auto& rooks = get_rook_list(white_move);
-              for(int& i : rooks){
-
-                if(isdigit(input[1])){          //check which rook has to be selected based on given row
-                  int disamb_row = get_row(input[1]);
-                  if (index_to_row(i) != disamb_row){
-                    continue;
-                  }
-                }
-
-                else if(isalpha(input[1])){     //check which rook has to be selected based on given column
-                  int disamb_col = get_col(input[1]);
-                  if (index_to_col(i) != disamb_col){
-                    continue;
-                  }
-                }
-
-                if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
-                  if(is_valid_rook_move(i, index, true, white_move)){
-
-                    board[index]->set_piece(nullptr);
-                    board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
-                    i = index;    //update white_rooks
-                    has_moved = true;
-                    return;
-                  }
-                }
-              }
-            }
-        }
-
-        else if(input.length() == 4){   //case for Rxd5
-
-            int index = get_index(input[2], input[3]);
-            int targ_row = get_row(input[2]);
-            int targ_col = get_col(input[3]);
-            auto& rooks = get_rook_list(white_move);
-
-            for(int& i : rooks){
-              if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
-                if(is_valid_rook_move(i, index, true, white_move)){
-                  board[index]->set_piece(nullptr);
-                  board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
-                  i = index;    //update white_rooks
-                  has_moved = true;
-                  return;
-                }
-              }
-            }            
-          
-        }
+      if(input.length() == 4 && input[1] == 'x'){
+        //Rxf3 style
+        is_capture = true;
+        target_file_idx = 2;
+        target_rank_idx = 3;
+      }
+      else if(input.length() == 4 && input[2] == 'x'){
+        //Rfxd3 style (disambiguation + capture)
+        is_capture = true;
+        target_file_idx = 3;
+        target_rank_idx = 4;
+      }
+      else if(input.length() == 3){
+        //Rf3 style (simple move)
+        //indices already set
+      }
+      else if(input.length() == 4 && input[2] != 'x'){
+        //Rfd3 style (disambiguation no capture)
+        target_file_idx = 2;
+        target_rank_idx = 3;
       }
 
-      else{   //normal rook move
+      // Extract target index from input, e.g. 'f3' = file 'f', rank '3'
+      int index = get_index(input[target_file_idx], input[target_rank_idx]);
+      auto& rooks = get_rook_list(white_move);
 
-          if(input.length()>3){ //case for several rooks being able to move to the same square
+      // For disambiguation: file or rank of the from-square may be given
+      char disambig_file = '\0';
+      char disambig_rank = '\0';
 
-            if(('1' <= input[1] && input[1] <= '8') || ('a' <= input[1] && input[1]<= 'h')){   //case for moves like R1d7
-              int index = get_index(input[2], input[3]);
-              int targ_row = get_row(input[2]);
-              int targ_col = get_col(input[3]);
-              auto& rooks = get_rook_list(white_move);
+      if(input.length() >= 4 && input[1] != 'x'){
+        // If there's a disambiguation char, it will be at input[1]
+        if (input[1] >= 'a' && input[1] <= 'h') disambig_file = input[1];
+        else if (input[1] >= '1' && input[1] <= '8') disambig_rank = input[1];
+      }
 
-              for(int& i : rooks){
+      for(int& i : rooks){
+        // Check disambiguation matches if present
+        int from_file = (i % 8) + 'a';
+        int from_rank = (i / 8) + '1';
 
-                if(isdigit(input[1])){          //check which rook has to be selected based on given row
-                  int disamb_row = get_row(input[1]);
-                  if (index_to_row(i) != disamb_row){
-                    continue;
-                  }
-                }
+        if((disambig_file != '\0' && disambig_file != from_file) ||
+          (disambig_rank != '\0' && disambig_rank != from_rank)){
+          continue;
+        }
 
-                else if(isalpha(input[1])){     //check which rook has to be selected based on given column
-                  int disamb_col = get_col(input[1]);
-                  if (index_to_col(i) != disamb_col){
-                    continue;
-                  }
-                }
-
-                if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
-                  if(is_valid_rook_move(i, index, false, white_move)){
-                    
-                    board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
-                    i = index;    //update white_rooks
-                    has_moved = true;
-                    return;
-                  }
-                }
-              }
-            }
+        if(is_valid_rook_move(i, index, is_capture, white_move)){
+          if(is_capture){
+            board[index]->set_piece(nullptr);
           }
-
-          else{     //normal case for rook move
-            int index = get_index(input[1], input[2]);
-            int targ_row = get_row(input[1]);
-            int targ_col = get_col(input[2]);
-            auto& rooks = get_rook_list(white_move);
-
-            for(int& i : rooks){
-              if(index_to_col(i) == targ_col || index_to_row(i) == targ_row){  //target and rook on the same column/row
-                if(is_valid_rook_move(i, index, false, white_move)){
-                  
-                  board[index]->set_piece(move(board[i]->get_piece()));   //set rook to target square
-                  i = index;    //update white_rooks
-                  has_moved = true;
-                  return;
-                }
-              }
-            }
-          }
+          board[index]->set_piece(std::move(board[i]->get_piece()));
+          i = index;
+          has_moved = true;
+          return;
+        }
       }
     }
 
@@ -522,7 +329,7 @@ using namespace std;
 
       for(int& i : bishops){
         if(is_valid_bishop_move(i, index, is_capture, white_move)){ 
-          if(is_capture == true){
+          if(is_capture){
             board[index]->set_piece(nullptr);
           }
           board[index]->set_piece(move(board[i]->get_piece()));              
@@ -543,6 +350,8 @@ using namespace std;
       if(input.length() == 4 && input[1] == 'x'){
         // Nxf3 style
         is_capture = true;
+        target_file_idx = 2;
+        target_rank_idx = 3;
       }
       else if(input.length() == 4 && input[2] == 'x'){
         // Nfxd3 style (disambiguation + capture)
@@ -596,6 +405,12 @@ using namespace std;
       }
     }
 
+
+
+    std::vector<int>& Board::get_queen_list(bool white_move){
+      return white_move ? white_queens : black_queens;
+    }
+    
     std::vector<int>& Board::get_rook_list(bool white_move){
       return white_move ? white_rooks : black_rooks;
     }
@@ -606,6 +421,69 @@ using namespace std;
 
     std::vector<int>& Board::get_knight_list(bool white_move){
       return white_move ? white_knights : black_knights;
+    }
+
+    std::vector<int>& Board::get_pawn_list(bool white_move){
+      return white_move ? white_pawns : black_pawns;
+    }
+
+
+    bool Board::is_valid_king_move(int from, int to, bool is_capture, bool white_move){
+
+      if(!board[from]->get_piece()){
+        return false; // No piece to move
+      }
+
+      std::unique_ptr<Piece>& piece = board[from]->get_piece();
+
+      // Must be a rook of the correct side
+      if(piece->type != 0 || piece->color != white_move){
+        return false;
+      }
+
+    // Must be a legal rook move
+      if(!check_k_index(to, from)){
+        return false;
+      }
+
+      if(is_capture){
+        // Capture must be against the opposite color
+        return board[to]->get_piece() &&
+               board[to]->get_piece()->color != white_move;
+      } 
+      else{
+        // Non-capture must land on an empty square
+        return board[to]->get_piece() == nullptr;
+      }
+    }
+
+    bool Board::is_valid_Queen_move(int from, int to, bool is_capture, bool white_move){
+      
+      if(!board[from]->get_piece()){
+        return false; // No piece to move
+      }
+
+      std::unique_ptr<Piece>& piece = board[from]->get_piece();
+
+      // Must be a queen of the correct side
+      if(piece->type != 1 || piece->color != white_move){
+        return false;
+      }
+
+    // Must be a legal rook move
+      if(!check_q_index(to, from)){
+        return false;
+      }
+
+      if(is_capture){
+        // Capture must be against the opposite color
+        return board[to]->get_piece() &&
+               board[to]->get_piece()->color != white_move;
+      } 
+      else{
+        // Non-capture must land on an empty square
+        return board[to]->get_piece() == nullptr;
+      }
     }
 
     bool Board::is_valid_rook_move(int from, int to, bool is_capture, bool white_move){
@@ -695,7 +573,56 @@ using namespace std;
       }
     }
 
+    bool Board::is_valid_pawn_move(int from, int to, bool is_capture, bool white_move){
+      if(!board[from]->get_piece()){
+        return false; // No piece to move
+      }
+      std::unique_ptr<Piece>& piece = board[from]->get_piece();
+      if(piece->type != 5 || piece->color != white_move){
+        return false;
+      }
+      if(!check_p_index(to, from, is_capture, white_move)){
+        return false;
+      }
 
+      if(is_capture){
+        // Capture must be against the opposite color
+        return board[to]->get_piece() &&
+               board[to]->get_piece()->color != white_move;
+      } 
+      else{
+        // Non-capture must land on an empty square
+        return board[to]->get_piece() == nullptr;
+      }
+    }
+
+    bool Board::is_valid_promotion(int from, int to, bool is_capture, bool white_move){
+      if(index_to_row(from) != 7){
+        return false; //pawn is not on the last row
+      }
+      if(!board[from]->get_piece()){
+        return false; // No piece to move
+      }
+      std::unique_ptr<Piece>& piece = board[from]->get_piece();
+      if(piece->type != 5 || piece->color != white_move){
+        return false;
+      }
+      if(!check_p_index(to, from, is_capture, white_move)){
+        return false;
+      }
+
+      if(is_capture){
+        // Capture must be against the opposite color
+        return board[to]->get_piece() &&
+               board[to]->get_piece()->color != white_move;
+      } 
+      else{
+        // Non-capture must land on an empty square
+        return board[to]->get_piece() == nullptr;
+      }
+
+    }
+    
 
     bool Board::check_k_index(int targ_index, int K_pos){
       static const int offsets[8] = {-9, -8, -7, -1, 1, 7, 8, 9};
@@ -862,6 +789,51 @@ using namespace std;
 
       return false;
     }
+
+    bool Board::check_p_index(int to, int from, bool is_capture, bool white_move) {
+      int from_file = from % 8;
+      int from_rank = from / 8;
+      int to_file   = to % 8;
+      int to_rank   = to / 8;
+
+      int rank_diff = to_rank - from_rank;
+      int file_diff = to_file - from_file;
+
+      if(white_move){
+        if(is_capture){
+          // White captures diagonally one square
+          return (rank_diff == 1 && std::abs(file_diff) == 1);
+        } 
+        else{
+          // One step forward or two steps from starting rank (rank 1 in 0-index)
+          if (rank_diff == 1 && file_diff == 0){
+            return true;
+          }
+          if (from_rank == 1 && rank_diff == 2 && file_diff == 0) {
+            // Check square in between is empty
+            return (board[from + 8]->get_piece() == nullptr);
+          }
+          return false;
+        }
+    } 
+      else { // Black move
+        if(is_capture){
+          // Black captures diagonally one square
+          return (rank_diff == -1 && std::abs(file_diff) == 1);
+        }
+        else{
+          // One step forward or two steps from starting rank (rank 6 in 0-index)
+          if (rank_diff == -1 && file_diff == 0){
+            return true;
+          }
+          if (from_rank == 6 && rank_diff == -2 && file_diff == 0){
+            // Check square in between is empty
+            return (board[from - 8]->get_piece() == nullptr);
+          }
+          return false;
+        }
+    }
+}
 
 
 

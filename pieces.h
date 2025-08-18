@@ -1,8 +1,7 @@
 #ifndef PIECES_H
 #define PIECES_H
 
-//#include "square.h"
-//#include "board.h"
+
 
 class Piece{
   public:
@@ -16,10 +15,6 @@ class Piece{
 
     int get_index(char * target);
 
-    
-
-    //virtual void move_pc(char * target);
-
     virtual ~Piece();
     
 };
@@ -27,12 +22,13 @@ class Piece{
 class Pawn: public Piece{
   public:
     Pawn(bool pcolor);
-    bool just_moved_two = false;
+    bool just_moved_two;
 };
 
 class King: public Piece{
   public:
     King(bool pcolor);
+    bool has_n_moved;
 };
 
 class Queen: public Piece{
@@ -43,6 +39,8 @@ class Queen: public Piece{
 class Rook: public Piece{
   public:
     Rook(bool pcolor);
+    bool has_n_moved;
+
 };
 
 class Bishop: public Piece{

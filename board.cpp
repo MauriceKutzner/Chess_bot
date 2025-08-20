@@ -102,6 +102,7 @@ using namespace std;
 
       
       if(input[0]== 'o' || input[0] == '0' || input[0] == 'O'){     //special case for castles
+        std::cout << endl << "detected";
         Castles_handling(input, white_move);
         return;
       }
@@ -474,13 +475,15 @@ using namespace std;
     void Board::Castles_handling(std::string input, bool white_move){
 
       if(is_valid_castling(input, white_move)){
+        std::cout << endl << "is_valid_castling";
         int r_index, r_index_start, k_index, k_index_start;
-        if (input.length() == 5) {
+        if(input.length() == 5){
           r_index = (white_move ? 3 : 59);
           r_index_start = (white_move ? 0 : 56);
           k_index = (white_move ? 2 : 58);
           
-        } else {
+        } 
+        else{
           r_index = (white_move ? 5 : 61);
           r_index_start = (white_move ? 7 : 63);
           k_index = (white_move ? 6 : 62);
@@ -489,12 +492,7 @@ using namespace std;
 
         board[r_index]->set_piece(move(board[r_index_start]->get_piece()));
         board[k_index]->set_piece(move(board[k_index_start]->get_piece()));
-        if (white_move){
-          King_w_pos = k_index;
-        } 
-        else{
-          King_b_pos = k_index;
-        }     //update the kings position
+        (white_move ? King_w_pos : King_b_pos) = k_index;
         auto& rooks = (white_move ? white_rooks : black_rooks);
         for(int& i: rooks){   //update the rooks position
           if(i == r_index_start){
@@ -732,18 +730,22 @@ using namespace std;
 
     bool Board::is_valid_castling(std::string input, bool white_move){
       if (input.length()== 5){
+        std::cout << "in valid function" << endl;
         int r_index = (white_move ? 0 : 56);
         int k_index = (white_move ? 4 : 60);
-
+        
         if(!board[r_index]->get_piece() ||    
           !board[k_index]->get_piece() ||
-          !(board[r_index + 1]->get_piece() == nullptr) ||
-          !(board[r_index + 2]->get_piece() == nullptr) ||
-          !(board[r_index + 3]->get_piece() == nullptr)){
+          board[r_index + 1]->get_piece() != nullptr ||
+          board[r_index + 2]->get_piece() != nullptr ||
+          board[r_index + 3]->get_piece() != nullptr){
+          std::cout << "in first if statement" << endl;
 
           return false;
         }
         if(!(board[r_index]->get_piece()->type == 2) || !(board[k_index]->get_piece()->type == 0)){   //chekc if the pieces are rook and king
+          std::cout << "in second if statement" << endl;
+
           return false;
         }
 
@@ -751,23 +753,27 @@ using namespace std;
         King* king = dynamic_cast<King*>(board[k_index]->get_piece().get());
 
         if(rook->has_n_moved == false || king->has_n_moved == false){   //cehck if either rook or king have moved
+          std::cout << "in third if statement" << endl;
           return false;
         }
         
         return true;
       }
       else if (input.length()== 3){
+        std::cout << "in valid function" << endl;
+
         int r_index = (white_move ? 7 : 63);
         int k_index = (white_move ? 4 : 60);
 
         if(!board[r_index]->get_piece() ||    
           !board[k_index]->get_piece() ||
-          !(board[r_index - 1]->get_piece() == nullptr) ||
-          !(board[r_index - 2]->get_piece() == nullptr)){
-
+          board[r_index - 1]->get_piece() != nullptr ||
+          board[r_index - 2]->get_piece() != nullptr){
+          std::cout << "in first if statement" << endl;
           return false;
         }
         if(!(board[r_index]->get_piece()->type == 2) || !(board[k_index]->get_piece()->type == 0)){   //chekc if the pieces are rook and king
+          std::cout << "in second if statement" << endl;
           return false;
         }
 
@@ -775,6 +781,7 @@ using namespace std;
         King* king = dynamic_cast<King*>(board[k_index]->get_piece().get());
 
         if(rook->has_n_moved == false || king->has_n_moved == false){   //cehck if either rook or king have moved
+          std::cout << "in third if statement" << endl;
           return false;
         }
         

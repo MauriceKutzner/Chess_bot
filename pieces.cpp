@@ -21,7 +21,9 @@ using namespace std;
 
   
   King::King(bool pcolor):
-    Piece(0, pcolor, false,0){};
+    Piece(0, pcolor, false,0){
+      has_n_moved = true;
+    };
   
 
   Queen::Queen(bool pcolor):
@@ -29,7 +31,9 @@ using namespace std;
 
 
   Rook::Rook(bool pcolor):
-    Piece(0, pcolor, false,2){};
+    Piece(0, pcolor, false,2){
+      has_n_moved = true;
+    };
 
 
   Bishop::Bishop(bool pcolor):

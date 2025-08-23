@@ -12,7 +12,7 @@
 
 using namespace std;
 
- 
+/*Overarching functions*/
 
     void clear_console() {
         system("cls");
@@ -164,7 +164,30 @@ using namespace std;
       }
     }
 
-
+    void Board::play_game(){
+      std::string input;
+      //bool is_legal;
+      bool white_move = true;       //this tells the program who is to move
+      has_moved = false;
+      int a = 5;
+      while( a != 2){
+        while(has_moved == false){
+          print_board();
+          std::cin >> input;
+          if(input == "exit"){
+            std::cout << endl << endl;
+            a = 2;
+            break;
+          }
+          move_check(input, white_move);
+        }
+        white_move = !white_move;     //for the next turn, the other player has his turn
+        has_moved = false;
+        clear_console();
+      }
+    }
+    
+/*Handling functions*/
     
     void Board::King_handling(std::string input, bool white_move){
         bool is_capture = (input[1] == 'x');
@@ -178,6 +201,10 @@ using namespace std;
           }
           board[index]->set_piece(move(board[K_pos]->get_piece()));
           (white_move ? King_w_pos : King_b_pos) = index;
+          King* king = dynamic_cast<King*>(board[index]->get_piece().get());
+          if(king->has_n_moved){
+            king->has_n_moved = false;
+          }
           has_moved = true;
           return;
         }
@@ -185,7 +212,7 @@ using namespace std;
           return;
         }
       }
-
+      
     void Board::Queen_handling(std::string input, bool white_move){
       bool is_capture = (input.find('x') != std::string::npos);   //detect capture
 
@@ -291,7 +318,12 @@ using namespace std;
             remove_piece_index((board[index]->get_piece()->type), index, white_move);
             board[index]->set_piece(nullptr);
           }
-          board[index]->set_piece(std::move(board[i]->get_piece()));
+          board[index]->set_piece(std::move(board[i]->get_piece()));    //move rook to target square
+
+          Rook* rook = dynamic_cast<Rook*>(board[index]->get_piece().get());
+          if(rook->has_n_moved){      //make sure the rook cannot castle again
+            rook->has_n_moved = false;
+          }
           i = index;
           has_moved = true;
           return;
@@ -506,6 +538,7 @@ using namespace std;
       }
     }
 
+    /*Get List functions*/
 
     std::vector<int>& Board::get_queen_list(bool white_move){
       return white_move ? white_queens : black_queens;
@@ -527,7 +560,7 @@ using namespace std;
       return white_move ? white_pawns : black_pawns;
     }
 
-
+/*is valid functions*/
 
     bool Board::is_valid_king_move(int from, int to, bool is_capture, bool white_move){
 
@@ -725,7 +758,31 @@ using namespace std;
     }
     
     bool Board::is_valid_en_passent(int from, int to, bool is_capture, bool white_move){
-      return false;
+      if(index_to_row(from) != 5){
+        return false; //pawn is on the incorrect row to perform en passent
+      }
+
+      if(!board[from]->get_piece()){
+        return false;   //no piece to move
+      }
+
+      std::unique_ptr<Piece>& piece = board[from]->get_piece();
+      if(piece->type != 5 || piece->color != white_move){
+        return false; //either incorrect color or type
+      }
+
+      if(!check_en_passant(to, from, white_move)){
+        return false;   //does not meet the en passent requirements
+      }
+      
+      if(is_capture){
+        return board[to]->get_piece() &&
+               board[to]->get_piece()->color != white_move;
+      }
+      else{
+        return false; //en passent is always a capture
+      }
+
     }
 
     bool Board::is_valid_castling(std::string input, bool white_move){
@@ -790,6 +847,7 @@ using namespace std;
       return false;
     }
 
+    /*Check index functions*/
 
     bool Board::check_k_index(int targ_index, int K_pos){
       static const int offsets[8] = {-9, -8, -7, -1, 1, 7, 8, 9};
@@ -1002,7 +1060,49 @@ using namespace std;
     }
 }
 
+    bool Board::check_en_passant(int to, int from, bool white_move){
+      // Pawns can only move diagonally by 1 file (col) and 1 rank (row) for en passant
+      int from_row = index_to_row(from);
+      int from_col = index_to_col(from);
+      int to_row   = index_to_row(to);
+      int to_col   = index_to_col(to);
 
+      // Basic diagonal move check
+      if (std::abs(from_col - to_col) != 1) return false;
+      if ((white_move && to_row - from_row != 1) || (!white_move && from_row - to_row != 1)) {
+        return false;
+      }
+
+      // Destination square must be empty
+      if (board[to]->get_piece() != nullptr){
+        return false;
+      }
+
+      // The pawn that can be captured en passant is one row "behind" the target
+      int captured_index = (white_move ? to - 8 : to + 8);
+      if (!board[captured_index] || !board[captured_index]->get_piece()){
+        return false;
+      }
+
+      // Must be an enemy pawn
+      Pawn* captured_pawn = dynamic_cast<Pawn*>(board[captured_index]->get_piece().get());
+      if(!captured_pawn){
+        return false;
+      }
+
+      if(captured_pawn->color == white_move){
+        return false;
+      }
+
+      // The enemy pawn must have just moved two squares last turn
+      if(!captured_pawn->just_moved_two){
+        return false;
+      }
+
+      return true;
+}
+
+/*get functions*/
 
     int Board::get_index(char letter, char number){
       int col =  1 + (letter -'a');
@@ -1030,30 +1130,7 @@ using namespace std;
       return (1 + (index % 8));
     }
 
-
-    
-    void Board::play_game(){
-      std::string input;
-      //bool is_legal;
-      bool white_move = true;       //this tells the program who is to move
-      has_moved = false;
-      int a = 5;
-      while( a != 2){
-        while(has_moved == false){
-          print_board();
-          std::cin >> input;
-          if(input == "exit"){
-            std::cout << endl << endl;
-            a = 2;
-            break;
-          }
-          move_check(input, white_move);
-        }
-        white_move = !white_move;     //for the next turn, the other player has his turn
-        has_moved = false;
-        clear_console();
-      }
-    }
+/*Sqaure functionalities*/
 
     Square::Square():sq_index(), sq_color(){
     }

@@ -47,6 +47,7 @@ public:
     bool check_b_index(int targ_index, int B_pos);
     bool check_n_index(int targ_index, int N_pos);  
     bool check_p_index(int to, int from, bool is_capture, bool white_move);
+    bool check_en_passant(int to, int from, bool white_move);
 
 
     bool is_valid_king_move(int from, int to, bool is_capture, bool white_move);

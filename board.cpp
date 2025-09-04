@@ -164,6 +164,39 @@ using namespace std;
       }
     }
 
+    void Board::add_piece_index(int type, int index, bool white_move){
+      switch(type){
+        case 1:{     //Queen got added
+          std::vector<int>& queens = (!white_move ? white_queens : black_queens);
+          queens.push_back(index);
+          return;
+        }
+        case 2:{     //Rook got captured
+          std::vector<int>& rooks = (!white_move ? white_rooks : black_rooks);
+          rooks.push_back(index);
+          return;
+        }
+        case 3:{     //Bishop got captured
+          std::vector<int>& bishops = (!white_move ? white_bishops : black_bishops);
+          bishops.push_back(index);
+          return;
+        }
+        case 4:{     //Knight got captured
+          std::vector<int>& knights = (!white_move ? white_knights : black_knights);
+          knights.push_back(index);
+          return;
+        }
+        case 5:{     //pawn got captured
+          std::vector<int>& pawns = (!white_move ? white_pawns : black_pawns);
+          pawns.push_back(index);
+          return;
+        }
+        default:{
+          return;
+        }
+      }
+    }
+
     void Board::play_game(){
       std::string input;
       //bool is_legal;
@@ -187,6 +220,240 @@ using namespace std;
       }
     }
     
+    Board::UndoState Board::make_move(Move& move, bool white_move){
+      UndoState undo;
+
+      // Save previous state
+      undo.prev_king_w_pos = King_w_pos;
+      undo.prev_king_b_pos = King_b_pos;
+
+      undo.prev_white_queens = white_queens;
+      undo.prev_black_queens = black_queens;
+
+      undo.prev_white_rooks = white_rooks;
+      undo.prev_black_rooks = black_rooks;
+
+      undo.prev_white_bishops = white_bishops;
+      undo.prev_black_bishops = black_bishops;
+
+      undo.prev_white_knights = white_knights;
+      undo.prev_black_knights = black_knights;
+
+      undo.prev_white_pawns = white_pawns;
+      undo.prev_black_pawns = black_pawns;
+
+      
+
+      auto& piece = board[move.from]->get_piece();
+      int piece_type = board[move.from]->get_piece()->type;
+      undo.prev_has_moved = piece->has_moved;
+
+      // Handle captures
+      if(move.is_capture){
+        if(move.is_en_passant){
+          int captured_index = white_move ? move.to - 8 : move.to + 8;
+          undo.captured_piece = std::move(board[captured_index]->get_piece());    //save the captured piece for possible undoing
+          remove_piece_index(undo.captured_piece->type, captured_index, !white_move);   //remove the index of the captrued piece
+          board[captured_index]->set_piece(nullptr);
+        } 
+        else{
+          undo.captured_piece = std::move(board[move.to]->get_piece());
+          remove_piece_index(undo.captured_piece->type, move.to, !white_move);
+          board[move.to]->set_piece(nullptr);     //make the target square empty
+        }
+      } 
+      else{     
+        undo.captured_piece = nullptr;
+      }
+
+      // Move piece
+      board[move.to]->set_piece(std::move(piece));
+      board[move.from]->set_piece(nullptr);
+      board[move.to]->get_piece()->has_moved = true;
+      
+      // Update piece lists
+      switch(piece_type){
+        case 0:
+          auto& King_pos = white_move ? King_w_pos : King_b_pos;
+          King_pos = move.to;
+          break;
+        case 1:
+          auto& Queen_vec = white_move ? white_queens : black_queens;
+          for (int& idx : Queen_vec){
+            if (idx == move.from){
+              idx = move.to;
+            }
+          }
+          break;
+        case 2:
+          auto& Rook_vec = white_move ? white_rooks : black_rooks;
+          for (int& idx : Rook_vec){
+            if (idx == move.from){
+              idx = move.to;
+            }
+          }
+          break;
+        case 3:
+          auto& Bishop_vec = white_move ? white_bishops: black_bishops;
+          for (int& idx : Bishop_vec){
+            if (idx == move.from){
+              idx = move.to;
+            }
+          }
+          break;
+        case 4:
+          auto& Knight_vec = white_move ? white_knights : black_knights;
+          for (int& idx : Knight_vec){
+            if (idx == move.from){
+              idx = move.to;
+            }
+          }
+          break;
+        case 5:
+          auto& pawns_vec = white_move ? white_pawns : black_pawns;
+          for (int& idx : pawns_vec){
+            if (idx == move.from){
+              idx = move.to;
+            }
+          }
+          break;
+      }
+      
+
+      if (move.is_castle){
+        // Handle rook movement
+        if (move.to > move.from) {  // kingside
+          undo.rook_from = white_move ? 7 : 63;
+          undo.rook_to = white_move ? 5 : 61;
+        } else {                    // queenside
+          undo.rook_from = white_move ? 0 : 56;
+          undo.rook_to = white_move ? 3 : 59;
+        }
+        // Save rook's has_moved flag before overwriting
+        if (board[undo.rook_from] && board[undo.rook_from]->get_piece()) {
+          undo.rook_prev_has_moved = board[undo.rook_from]->get_piece()->has_moved;
+        } 
+        else {
+          undo.rook_prev_has_moved = false; // fallback
+        }
+        
+
+        board[undo.rook_to]->set_piece(std::move(board[undo.rook_from]->get_piece()));    //move selected rook
+        board[undo.rook_from]->set_piece(nullptr);
+
+        if (board[undo.rook_to] && board[undo.rook_to]->get_piece()){
+          board[undo.rook_to]->get_piece()->has_moved = true;
+        }
+
+        // Update rook positions
+        auto& rooks_vec = white_move ? white_rooks : black_rooks;
+        for (int& idx : rooks_vec){ 
+          if(idx == undo.rook_from){
+            idx = undo.rook_to;
+          }
+        }
+      }
+
+      // Handle promotion
+      if (move.promotion_type != -1){
+        board[move.to]->set_piece(nullptr);
+        remove_piece_index(piece_type, move.from, white_move);
+        
+        switch(move.promotion_type){
+
+          case 1: board[move.to]->set_piece(std::make_unique<Queen>(white_move));
+                  (white_move ? white_queens : black_queens).push_back(move.to);
+                  break;
+          case 2: board[move.to]->set_piece(std::make_unique<Rook>(white_move));
+                  (white_move ? white_rooks : black_rooks).push_back(move.to);
+                  break;
+          case 3: board[move.to]->set_piece(std::make_unique<Bishop>(white_move));
+                  (white_move ? white_bishops : black_bishops).push_back(move.to);
+                  break;
+          case 4: board[move.to]->set_piece(std::make_unique<Knight>(white_move));
+                  (white_move ? white_knights : black_knights).push_back(move.to);
+                  break;
+        }
+       
+      }
+
+      
+
+      // Update just_moved_two for pawns
+      if(board[move.to]->get_piece()->type == 5){
+        Pawn* p = dynamic_cast<Pawn*>(board[move.to]->get_piece().get());
+        if (p){
+          undo.prev_just_moved_two = p->just_moved_two;
+          p->just_moved_two = (std::abs(move.to - move.from) == 16);
+        }
+      }
+
+      return undo;
+    }
+
+    void Board::unmake_move(Move& move, UndoState& undo, bool white_move){
+      auto& moved_piece = board[move.to]->get_piece();
+      board[move.from]->set_piece(std::move(moved_piece));  //move the piece back
+
+      moved_piece->has_moved = undo.prev_has_moved;     //undo move marker
+
+      //undo flag for pawns moving 2 squares
+      if(moved_piece->type == 5){
+        Pawn* p = dynamic_cast<Pawn*>(moved_piece.get());
+        if (p){
+          p->just_moved_two = undo.prev_just_moved_two;
+        }
+      }
+
+      //undo deletion of piece index
+      add_piece_index(moved_piece->type, move.from, white_move);
+
+      //handle captures and en passent
+      if(move.is_capture){
+        if(move.is_en_passant){
+          int captured_index = white_move ? move.to - 8 : move.to + 8;
+          board[captured_index]->set_piece(std::move(undo.captured_piece));
+          add_piece_index(board[captured_index]->get_piece()->type, captured_index, !white_move);
+        }
+        else{
+          board[move.to]->set_piece(std::move(undo.captured_piece));    //return captured piece to original square
+          add_piece_index(undo.captured_piece->type, move.to, white_move); //readd index
+        }
+      }
+       
+      //handle castling
+      if(move.is_castle){
+        board[undo.rook_from]->set_piece(std::move(board[undo.rook_to]->get_piece()));
+        board[undo.rook_to]->set_piece(nullptr);
+        if(board[undo.rook_from] && board[undo.rook_from]->get_piece()){
+          board[undo.rook_from]->get_piece()->has_moved = undo.rook_prev_has_moved;
+        }
+      }
+
+      //promotion case
+      if(move.promotion_type != -1){
+        remove_piece_index(board[move.to]->get_piece()->type, move.to, white_move);
+        board[move.to]->set_piece(nullptr);
+        board[move.from]->set_piece(std::make_unique<Pawn>(white_move));
+        auto& pawns_vec = white_move ? white_pawns : black_pawns;
+        pawns_vec.push_back(move.from);
+      }
+
+      //restore piece indices
+      King_w_pos       = undo.prev_king_w_pos;
+      King_b_pos       = undo.prev_king_b_pos;
+      white_queens     = undo.prev_white_queens;
+      black_queens     = undo.prev_black_queens;
+      white_rooks      = undo.prev_white_rooks;
+      black_rooks      = undo.prev_black_rooks;
+      white_bishops    = undo.prev_white_bishops;
+      black_bishops    = undo.prev_black_bishops;
+      white_knights    = undo.prev_white_knights;
+      black_knights    = undo.prev_black_knights;
+      white_pawns      = undo.prev_white_pawns;
+      black_pawns      = undo.prev_black_pawns;
+    }
+
 /*Handling functions*/
     
     void Board::King_handling(std::string input, bool white_move){

@@ -18,6 +18,56 @@ class Piece;
 
 class Board {
 public:
+
+    struct UndoState{
+       
+
+        std::unique_ptr<Piece> captured_piece; // piece that was on the 'to' square before move (nullptr if empty)
+        
+        bool prev_has_moved;        // whether the moving piece had moved before
+        bool prev_just_moved_two;   // previous state of the just_moved_two flag for pawns
+
+        int prev_king_w_pos, prev_king_b_pos; // previous king positions
+
+        // Positions of pieces before move
+        
+        std::vector<int> prev_white_rooks;
+        std::vector<int> prev_black_rooks;
+        std::vector<int> prev_white_pawns;
+        std::vector<int> prev_black_pawns;
+        std::vector<int> prev_white_bishops;
+        std::vector<int> prev_black_bishops;
+        std::vector<int> prev_white_knights;
+        std::vector<int> prev_black_knights;
+        std::vector<int> prev_white_queens;
+        std::vector<int> prev_black_queens;
+
+        // Castling info
+        bool is_castle = false;
+        int rook_from = -1;          // if castling, original rook square
+        int rook_to = -1;            // if castling, destination rook square
+        bool rook_prev_has_moved = false;
+        // Promotion info
+        bool is_promotion = false;
+        int promoted_piece_type = -1; // 0=Q,1=R,2=B,3=N
+
+        // En passant info
+        bool is_en_passant = false;
+    };
+
+
+    
+    struct Move{
+        std::vector<int> prev_moved_vector;
+        std::vector<int> prev_captured_vector;
+
+        int from;
+        int to;
+        int promotion_type; //-1 means no promotion
+        bool is_capture;
+        bool is_castle;
+        bool is_en_passant;
+    };
     char return_piece_letter(int p_type);
     Board();
     void fill_board();
@@ -32,6 +82,9 @@ public:
     int index_to_row(int index);
     int index_to_col(int index);
     void remove_piece_index(int type, int index, bool white_move);
+    void add_piece_index(int type, int index, bool white_move);
+    UndoState make_move(Move& move, bool white_move);
+    void unmake_move(Move& move, UndoState& undo, bool white_move);
 
     void King_handling(std::string input, bool white_move);
     void Queen_handling(std::string input, bool white_move);

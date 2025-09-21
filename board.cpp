@@ -456,7 +456,7 @@ using namespace std;
 
 /*Handling functions*/
     
-    void Board::King_handling(std::string input, bool white_move){
+    Board::Move Board::King_handling(std::string input, bool white_move){
         bool is_capture = (input[1] == 'x');
         int index = get_index(input[1], input[2]);
         int K_pos = (white_move ? King_w_pos : King_b_pos);   //selects correct king
@@ -480,7 +480,7 @@ using namespace std;
         }
       }
       
-    void Board::Queen_handling(std::string input, bool white_move){
+    Board::Move Board::Queen_handling(std::string input, bool white_move){
       bool is_capture = (input.find('x') != std::string::npos);   //detect capture
 
       // Get the last two chars for target square
@@ -529,7 +529,7 @@ using namespace std;
     // If we get here, no queen made a valid move
     }
 
-    void Board::Rook_handling(std::string input, bool white_move){
+    Board::Move Board::Rook_handling(std::string input, bool white_move){
       bool is_capture = false;
       int target_file_idx = 1;  // index in input for target file letter
       int target_rank_idx = 2;  // index in input for target rank number
@@ -598,7 +598,7 @@ using namespace std;
       }
     }
 
-    void Board::Bishop_handling(std::string input, bool white_move){
+    Board::Move Board::Bishop_handling(std::string input, bool white_move){
       bool is_capture = (input[1] == 'x');
      
       int index = is_capture
@@ -623,7 +623,7 @@ using namespace std;
       return;
     } 
     
-    void Board::Knight_handling(std::string input, bool white_move){
+    Board::Move Board::Knight_handling(std::string input, bool white_move){
       bool is_capture = false;
       int target_file_idx = 1;  // index in input for target file letter
       int target_rank_idx = 2;  // index in input for target rank number
@@ -687,65 +687,46 @@ using namespace std;
       }
     }
 
-    void Board::pawn_handling(std::string input, bool white_move){  //include en passent
-
-      bool is_capture = (input.find('x')!= std::string::npos);
+    Board::Move Board::pawn_handling(std::string input, bool white_move){  //include en passent
+      Move move;
+      move.is_capture = (input.find('x')!= std::string::npos);
       auto& pawns = get_pawn_list(white_move);
 
       if(input[input.size() - 2] == '='){    //promotion case
-        int index = get_index(input[input.size()-4], input[input.size()-3]);
+        move.to = get_index(input[input.size()-4], input[input.size()-3]);
         for(int& i : pawns){
-          if(is_valid_promotion(i, index, is_capture, white_move)){
-            if(is_capture){
-              remove_piece_index((board[index]->get_piece()->type), index, white_move);
-              board[index]->set_piece(nullptr);
-            }
-
+          if(is_valid_promotion(i, move.to, move.is_capture, white_move)){
+            
+            move.from = i;
             switch(input[input.size() - 1]){
               case 'Q':
-                board[index]->set_piece(std::make_unique<Queen>(white_move));
-                board[i]->set_piece(nullptr);
-                (white_move ? white_queens : black_queens).push_back(index);
-                has_moved = true;
+                move.promotion_type = 1;
                 break;
               case 'R':
-                board[index]->set_piece(std::make_unique<Rook>(white_move));
-                board[i]->set_piece(nullptr);
-                (white_move ? white_rooks : black_rooks).push_back(index);
-                has_moved = true;
+                move.promotion_type = 2;
                 break;
               case 'B':
-                board[index]->set_piece(std::make_unique<Bishop>(white_move));
-                board[i]->set_piece(nullptr);
-                (white_move ? white_bishops : black_bishops).push_back(index);
-                has_moved = true;
-
+                move.promotion_type = 3;
                 break;
               case 'N':
-                board[index]->set_piece(std::make_unique<Knight>(white_move));
-                board[i]->set_piece(nullptr);
-                (white_move ? white_knights : black_knights).push_back(index);
-                has_moved = true;
+                move.promotion_type = 4;
                 break;
             }
-            return;
+            return move;
           }
         }
       }
       else{
 
-        int index = get_index(input[input.size()- 2], input[input.size() - 1]);
-        if(index_to_row(index) == 8){   //if the pawn is on the last row, it has to promote
+        move.to = get_index(input[input.size()- 2], input[input.size() - 1]);
+        if(index_to_row(move.to) == 8){   //if the pawn is on the last row, it has to promote
           return;
         }
 
         for(int& i : pawns){
-          if(is_valid_pawn_move(i, index, is_capture, white_move)){
-            
-            if(is_capture){
-              remove_piece_index((board[index]->get_piece()->type), index, white_move);
-              board[index]->set_piece(nullptr);
-            }
+          if(is_valid_pawn_move(i, move.to, move.is_capture, white_move)){
+            move.from = i;
+            /*
             auto& pawns_vec = white_move ? white_pawns : black_pawns;
             for (int& i: pawns_vec) {   //remark all moved two flags 
               if (board[i] && board[i]->get_piece()) {
@@ -761,17 +742,15 @@ using namespace std;
               if (pawn){
                 pawn->just_moved_two = true;
               }
-            }
-            board[index]->set_piece(move(board[i]->get_piece()));
-            i = index;
-            has_moved = true;
+            }*/
+            
             return;
           }
         }
       }
     }
 
-    void Board::Castles_handling(std::string input, bool white_move){
+    Board::Move Board::Castles_handling(std::string input, bool white_move){
 
       if(is_valid_castling(input, white_move)){
         std::cout << endl << "is_valid_castling";

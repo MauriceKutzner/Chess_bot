@@ -71,7 +71,7 @@ using namespace std;
         black_pawns.push_back(i);   //update pawn position
       }      
     }
-
+/*
     void Board::print_board(){  
       std::cout << endl << "    A   B   C   D   E   F   G   H " << endl << "  ---------------------------------" << endl << 1;
       for(int i = 0 ; i<64; i++){
@@ -97,36 +97,121 @@ using namespace std;
           std::cout << " 8" << endl << "  ---------------------------------" << endl<< "    A   B   C   D   E   F   G   H " << endl << endl ;
       
     }
+*/
+    void Board::print_board() {
+    std::cout << "\n    A   B   C   D   E   F   G   H \n";
+    std::cout << "  ---------------------------------\n";
+
+    for (int row = 0; row < 8; row++) {
+        std::cout << (row + 1); // print row number on the left
+
+        for (int col = 0; col < 8; col++) {
+            int idx = row * 8 + col;
+            std::unique_ptr<Piece>& piece = board[idx]->get_piece();
+
+            if (piece) {
+                char letter = return_piece_letter(return_p_type(piece));
+                if (piece->color == false) { // black
+                    letter = char(tolower(letter));
+                }
+                std::cout << " | " << letter;
+            } else {
+                std::cout << " |  ";
+            }
+        }
+
+        std::cout << " | " << (row + 1) << "\n"; // row number at the right
+        std::cout << "  ---------------------------------\n";
+    }
+
+    std::cout << "    A   B   C   D   E   F   G   H \n\n";
+}
 
     void Board::move_check(std::string input, bool white_move){
-
-      
+      UndoState undo;
+      Move move;
       if(input[0]== 'o' || input[0] == '0' || input[0] == 'O'){     //special case for castles
-        std::cout << endl << "detected";
-        Castles_handling(input, white_move);
+        bool length = (input.length() < 4);
+        move = Castles_handling(length, white_move);
+        
+          if(move.is_valid){
+
+            undo = make_move(move,white_move);
+            if(check_for_checks(white_move)){
+              std::cout << "King in Check!" << endl;
+              unmake_move(move, undo, white_move);
+            }
+          }
         return;
       }
       
       else if(isupper(input[0]) == false){      //if the first letter is not capitalized, it is a pawn move
-        pawn_handling(input, white_move);
+        move = pawn_handling(input, white_move);
+        if(move.is_valid){
+          undo = make_move(move,white_move);
+          if(check_for_checks(white_move)){
+            std::cout << "King in Check!" << endl;
+            unmake_move(move, undo, white_move);    
+          }
+        }
+        else{
+          std::cout<< "not valid" << endl;
+        }
         return;
       }
 
       else switch(input[0]){
         case 'K':
-          King_handling(input, white_move);
+          move = King_handling(input, white_move);
+          if(move.is_valid){
+            undo = make_move(move,white_move);
+            if(check_for_checks(white_move)){
+              std::cout << "King in Check!" << endl;
+
+              unmake_move(move, undo, white_move);
+            }
+          }
+          
           return;
         case 'Q':
-          Queen_handling(input, white_move);
+        move = Queen_handling(input, white_move);
+          if(move.is_valid){
+            undo = make_move(move,white_move);
+            if(check_for_checks(white_move)){
+              std::cout << "King in Check!" << endl;
+              unmake_move(move, undo, white_move);
+            }
+          }
           return;
         case 'R':
-          Rook_handling(input, white_move);
+          move = Rook_handling(input, white_move);
+          if(move.is_valid){
+            undo = make_move(move,white_move);
+            if(check_for_checks(white_move)){
+              std::cout << "King in Check!" << endl;
+              unmake_move(move, undo, white_move);
+            }
+          }
           return;
         case 'B':
-          Bishop_handling(input, white_move);
+          move = Bishop_handling(input, white_move);
+          if(move.is_valid){
+            undo = make_move(move,white_move);
+            if(check_for_checks(white_move)){
+              std::cout << "King in Check!" << endl;
+              unmake_move(move, undo, white_move);
+            }
+          }
           return;
         case 'N':
-          Knight_handling(input, white_move);
+          move = Knight_handling(input, white_move);
+          if(move.is_valid){
+            undo = make_move(move,white_move);
+            if(check_for_checks(white_move)){
+              std::cout << "King in Check!" << endl;
+              unmake_move(move, undo, white_move);
+            }
+          }
           return;
       }
     }
@@ -165,6 +250,7 @@ using namespace std;
     }
 
     void Board::add_piece_index(int type, int index, bool white_move){
+      std::cout<< "problem here";
       switch(type){
         case 1:{     //Queen got added
           std::vector<int>& queens = (!white_move ? white_queens : black_queens);
@@ -207,6 +293,9 @@ using namespace std;
         while(has_moved == false){
           print_board();
           std::cin >> input;
+          if(input.length() < 2){
+            continue;
+          }
           if(input == "exit"){
             std::cout << endl << endl;
             a = 2;
@@ -215,12 +304,14 @@ using namespace std;
           move_check(input, white_move);
         }
         white_move = !white_move;     //for the next turn, the other player has his turn
+        
         has_moved = false;
-        clear_console();
+        //clear_console();
       }
     }
     
-    Board::UndoState Board::make_move(Move& move, bool white_move){
+    Board::UndoState Board::make_move(const Move& move, bool white_move){
+
       UndoState undo;
 
       // Save previous state
@@ -242,11 +333,11 @@ using namespace std;
       undo.prev_white_pawns = white_pawns;
       undo.prev_black_pawns = black_pawns;
 
-      
 
-      auto& piece = board[move.from]->get_piece();
+      //auto& piece = board[move.from]->get_piece();
       int piece_type = board[move.from]->get_piece()->type;
-      undo.prev_has_moved = piece->has_moved;
+      undo.prev_has_moved = board[move.from]->get_piece()->has_moved;
+      
 
       // Handle captures
       if(move.is_capture){
@@ -267,17 +358,18 @@ using namespace std;
       }
 
       // Move piece
-      board[move.to]->set_piece(std::move(piece));
-      board[move.from]->set_piece(nullptr);
+      board[move.to]->set_piece(std::move(board[move.from]->get_piece()));
+      //board[move.from]->set_piece(nullptr);
       board[move.to]->get_piece()->has_moved = true;
-      
       // Update piece lists
+      print_board();
       switch(piece_type){
-        case 0:
-          auto& King_pos = white_move ? King_w_pos : King_b_pos;
+        case (0):{
+          int King_pos = white_move ? King_w_pos : King_b_pos;
           King_pos = move.to;
           break;
-        case 1:
+        }
+        case (1):{
           auto& Queen_vec = white_move ? white_queens : black_queens;
           for (int& idx : Queen_vec){
             if (idx == move.from){
@@ -285,7 +377,8 @@ using namespace std;
             }
           }
           break;
-        case 2:
+        }
+        case (2):{
           auto& Rook_vec = white_move ? white_rooks : black_rooks;
           for (int& idx : Rook_vec){
             if (idx == move.from){
@@ -293,7 +386,8 @@ using namespace std;
             }
           }
           break;
-        case 3:
+        }
+        case (3):{
           auto& Bishop_vec = white_move ? white_bishops: black_bishops;
           for (int& idx : Bishop_vec){
             if (idx == move.from){
@@ -301,7 +395,8 @@ using namespace std;
             }
           }
           break;
-        case 4:
+        }
+        case (4):{
           auto& Knight_vec = white_move ? white_knights : black_knights;
           for (int& idx : Knight_vec){
             if (idx == move.from){
@@ -309,17 +404,19 @@ using namespace std;
             }
           }
           break;
-        case 5:
+        }
+        case (5):{
           auto& pawns_vec = white_move ? white_pawns : black_pawns;
           for (int& idx : pawns_vec){
             if (idx == move.from){
               idx = move.to;
             }
           }
+          
           break;
+        }
       }
       
-
       if (move.is_castle){
         // Handle rook movement
         if (move.to > move.from) {  // kingside
@@ -353,6 +450,7 @@ using namespace std;
           }
         }
       }
+      
 
       // Handle promotion
       if (move.promotion_type != -1){
@@ -377,17 +475,15 @@ using namespace std;
        
       }
 
-      
-
       // Update just_moved_two for pawns
-      if(board[move.to]->get_piece()->type == 5){
+      if(board[move.to]->get_piece()->type == 5 ){
         Pawn* p = dynamic_cast<Pawn*>(board[move.to]->get_piece().get());
         if (p){
           undo.prev_just_moved_two = p->just_moved_two;
           p->just_moved_two = (std::abs(move.to - move.from) == 16);
         }
       }
-
+      has_moved = true;
       return undo;
     }
 
@@ -395,10 +491,10 @@ using namespace std;
       auto& moved_piece = board[move.to]->get_piece();
       board[move.from]->set_piece(std::move(moved_piece));  //move the piece back
 
-      moved_piece->has_moved = undo.prev_has_moved;     //undo move marker
+      board[move.from]->get_piece()->has_moved = undo.prev_has_moved;     //undo move marker
 
       //undo flag for pawns moving 2 squares
-      if(moved_piece->type == 5){
+      if(board[move.from]->get_piece()->type == 5){
         Pawn* p = dynamic_cast<Pawn*>(moved_piece.get());
         if (p){
           p->just_moved_two = undo.prev_just_moved_two;
@@ -406,7 +502,7 @@ using namespace std;
       }
 
       //undo deletion of piece index
-      add_piece_index(moved_piece->type, move.from, white_move);
+      add_piece_index(board[move.from]->get_piece()->type, move.from, white_move);
 
       //handle captures and en passent
       if(move.is_capture){
@@ -417,7 +513,7 @@ using namespace std;
         }
         else{
           board[move.to]->set_piece(std::move(undo.captured_piece));    //return captured piece to original square
-          add_piece_index(undo.captured_piece->type, move.to, white_move); //readd index
+          add_piece_index(undo.captured_piece->type, move.to, !white_move); //readd index
         }
       }
        
@@ -454,45 +550,146 @@ using namespace std;
       black_pawns      = undo.prev_black_pawns;
     }
 
-/*Handling functions*/
-    
-    Board::Move Board::King_handling(std::string input, bool white_move){
-        bool is_capture = (input[1] == 'x');
-        int index = get_index(input[1], input[2]);
-        int K_pos = (white_move ? King_w_pos : King_b_pos);   //selects correct king
+    bool Board::check_for_checks(bool white_move){
+      int king_pos = white_move ? King_w_pos : King_b_pos;
 
-        if(is_valid_king_move(K_pos, index, is_capture, white_move)){
-          if(is_capture == true){
-            remove_piece_index((board[index]->get_piece()->type), index, white_move);
-            board[index]->set_piece(nullptr);
+      int king_row = index_to_row(king_pos);
+      int king_col = index_to_col(king_pos);
+
+      // pawn moves
+      int pawn_dir = (white_move ? 1: -1);
+      for(int dc : {-1, 1}){
+        int r = king_row + pawn_dir;
+        int c = king_col + dc;
+        if(is_on_board(r, c)){
+
+          int idx = rc_to_index(r, c);
+          if(board[idx] && board[idx]->get_piece()){
+            auto& p = board[idx]->get_piece();
+            if (p->type == 5 && p->color != white_move){ 
+              return true;
+            }
           }
-          board[index]->set_piece(move(board[K_pos]->get_piece()));
-          (white_move ? King_w_pos : King_b_pos) = index;
-          King* king = dynamic_cast<King*>(board[index]->get_piece().get());
-          if(king->has_n_moved){
-            king->has_n_moved = false;
-          }
-          has_moved = true;
-          return;
-        }
-        else{
-          return;
         }
       }
+        // === 2. Knight attacks ===
+      const int knight_moves[8][2] = {
+        {2, 1}, {2, -1}, {-2, 1}, {-2, -1},
+        {1, 2}, {1, -2}, {-1, 2}, {-1, -2}
+      };
+      int i =1;
+
+      for (auto [dr, dc] : knight_moves) {
+        int r = king_row + dr;
+        int c = king_col + dc;
+        if (is_on_board(r, c)) {
+          int idx = rc_to_index(r, c);
+          if (board[idx] && board[idx]->get_piece()) {
+            auto& p = board[idx]->get_piece();
+            if (p->type == 4 && p->color != white_move) return true;
+          }
+        }
+        i++;
+      }
+      // === 3. Sliding pieces (rook/queen: straight lines, bishop/queen: diagonals) ===
+      const int rook_dirs[4][2]   = {{1,0}, {-1,0}, {0,1}, {0,-1}};
+      const int bishop_dirs[4][2] = {{1,1}, {1,-1}, {-1,1}, {-1,-1}};
+
+      // Rook/Queen
+      for (auto [dr, dc] : rook_dirs) {
+        int r = king_row, c = king_col;
+        while (true) {
+          r += dr; c += dc;
+          if (!is_on_board(r, c)) break;
+          int idx = rc_to_index(r, c);
+          if (board[idx] && board[idx]->get_piece()) {
+            auto& p = board[idx]->get_piece();
+            if (p->color != white_move && (p->type == 2 || p->type == 1)) return true; // rook or queen
+            break;
+          }
+        }
+      }
+      // Bishop/Queen
+      for (auto [dr, dc] : bishop_dirs) {
+        int r = king_row, c = king_col;
+        while (true) {
+          r += dr; c += dc;
+          if (!is_on_board(r, c)) break;
+          int idx = rc_to_index(r, c);
+          if (board[idx] && board[idx]->get_piece()) {
+            auto& p = board[idx]->get_piece();
+            if (p->color != white_move && (p->type == 3 || p->type == 1)) return true; // bishop or queen
+            break;
+          }
+        }
+      }
+
+      // === 4. Enemy king (edge case: adjacent square) ===
+      for (int dr=-1; dr<=1; dr++) {
+        for (int dc=-1; dc<=1; dc++) {
+          if (dr == 0 && dc == 0) continue;
+          int r = king_row + dr;
+          int c = king_col + dc;
+          if (is_on_board(r, c)) {
+            int idx = rc_to_index(r, c);
+            if (board[idx] && board[idx]->get_piece()) {
+              auto& p = board[idx]->get_piece();
+              if (p->type == 0 && p->color != white_move) return true;
+            }
+          }
+        }
+      }
+
+    
+      return false;
+    }
+
+    bool Board::is_on_board(int row, int col){
+      return (row >= 0 && row < 8 && col >= 0 && col < 8);
+    }
+
+    int Board::rc_to_index(int row, int col){
+      return (((row)*8)+(col));
+    }
+
+    vector<Board::Move> Board::find_moves(bool white_move){
+      vector<Move> legal_moves;
+      auto pawns = (white_move ? white_pawns : black_pawns);
+      for(auto& i : pawns){
+
+      }
+    }
+
+    /*Handling functions*/
+    
+    Board::Move Board::King_handling(std::string input, bool white_move){
+        Move move;
+        move.is_capture = (input[1] == 'x');
+        move.to = get_index(input[1], input[2]);
+        move.from = (white_move ? King_w_pos : King_b_pos);   //selects correct king
+
+        if(is_valid_king_move(move.from, move.to, move.is_capture, white_move)){
+          move.is_valid = true;
+          return move;
+        }
+        move.is_valid = false;
+        return move;
+    }
       
     Board::Move Board::Queen_handling(std::string input, bool white_move){
-      bool is_capture = (input.find('x') != std::string::npos);   //detect capture
+      Move move;
+      move.is_capture = (input.find('x') != std::string::npos);   //detect capture
 
       // Get the last two chars for target square
-      int index = get_index(input[input.size() - 2], input[input.size() - 1]);
+      move.to = get_index(input[input.size() - 2], input[input.size() - 1]);
 
       // Extract disambiguation info if present (e.g., Qbd4 or Q3d4)
       char disambig_file = '\0';
       char disambig_rank = '\0';
-      if (input.size() > (is_capture ? 4 : 3)) {
+      if (input.size() > (move.is_capture ? 4 : 3)) {
         // Example: Qbd4 or Qbxd4 → char after 'Q' but before 'x' or target square
         int start_pos = 1; 
-        if (is_capture && input[1] == 'x'){
+        if (move.is_capture && input[1] == 'x'){
           start_pos = 2;
         }
         if (std::isalpha(input[start_pos])){
@@ -515,34 +712,32 @@ using namespace std;
           continue;
         }
 
-        if(is_valid_Queen_move(i, index, is_capture, white_move)){
-          if (is_capture) {
-            remove_piece_index((board[index]->get_piece()->type), index, white_move);
-            board[index]->set_piece(nullptr);
-          }
-          board[index]->set_piece(move(board[i]->get_piece()));
-          i = index; // update queen's stored position
-          has_moved = true;
-          return;
+        if(is_valid_Queen_move(i, move.to, move.is_capture, white_move)){
+          move.from = i;
+          move.is_valid = true;
+          return move;
         }
       }
-    // If we get here, no queen made a valid move
+
+    move.is_valid = false;
+    return move;
     }
 
     Board::Move Board::Rook_handling(std::string input, bool white_move){
-      bool is_capture = false;
+      Move move;
+      move.is_capture = false;
       int target_file_idx = 1;  // index in input for target file letter
       int target_rank_idx = 2;  // index in input for target rank number
 
       if(input.length() == 4 && input[1] == 'x'){
         //Rxf3 style
-        is_capture = true;
+        move.is_capture = true;
         target_file_idx = 2;
         target_rank_idx = 3;
       }
       else if(input.length() == 4 && input[2] == 'x'){
         //Rfxd3 style (disambiguation + capture)
-        is_capture = true;
+        move.is_capture = true;
         target_file_idx = 3;
         target_rank_idx = 4;
       }
@@ -557,7 +752,7 @@ using namespace std;
       }
 
       // Extract target index from input, e.g. 'f3' = file 'f', rank '3'
-      int index = get_index(input[target_file_idx], input[target_rank_idx]);
+      move.to = get_index(input[target_file_idx], input[target_rank_idx]);
       auto& rooks = get_rook_list(white_move);
 
       // For disambiguation: file or rank of the from-square may be given
@@ -580,63 +775,52 @@ using namespace std;
           continue;
         }
 
-        if(is_valid_rook_move(i, index, is_capture, white_move)){
-          if(is_capture){
-            remove_piece_index((board[index]->get_piece()->type), index, white_move);
-            board[index]->set_piece(nullptr);
-          }
-          board[index]->set_piece(std::move(board[i]->get_piece()));    //move rook to target square
-
-          Rook* rook = dynamic_cast<Rook*>(board[index]->get_piece().get());
-          if(rook->has_n_moved){      //make sure the rook cannot castle again
-            rook->has_n_moved = false;
-          }
-          i = index;
-          has_moved = true;
-          return;
+        if(is_valid_rook_move(i, move.to, move.is_capture, white_move)){
+          move.from = i;
+          move.is_valid = true;
+          return move;
         }
       }
+      move.is_valid = true;
+      return move;
     }
 
     Board::Move Board::Bishop_handling(std::string input, bool white_move){
-      bool is_capture = (input[1] == 'x');
+      Move move;
+      move.is_capture = (input[1] == 'x');
      
-      int index = is_capture
+      move.to = move.is_capture
         ? get_index(input[2], input[3]) // capture: skip 'x'
         : get_index(input[1], input[2]); // normal move    
 
       auto& bishops = get_bishop_list(white_move);
 
       for(int& i : bishops){
-        if(is_valid_bishop_move(i, index, is_capture, white_move)){ 
-          if(is_capture){
-            remove_piece_index((board[index]->get_piece()->type), index, white_move);
-            board[index]->set_piece(nullptr);
-          }
-          board[index]->set_piece(move(board[i]->get_piece()));              
-          i = index;      //update the position of the bishops
-          has_moved = true;
-          return;
+        if(is_valid_bishop_move(i, move.to, move.is_capture, white_move)){
+          move.from = i;
+          move.is_valid = true;
+          return move;
         }
-      
       }
-      return;
+      move.is_valid = false;
+      return move;
     } 
     
     Board::Move Board::Knight_handling(std::string input, bool white_move){
-      bool is_capture = false;
+      Move move;
+      move.is_capture = false;
       int target_file_idx = 1;  // index in input for target file letter
       int target_rank_idx = 2;  // index in input for target rank number
 
       if(input.length() == 4 && input[1] == 'x'){
         // Nxf3 style
-        is_capture = true;
+        move.is_capture = true;
         target_file_idx = 2;
         target_rank_idx = 3;
       }
       else if(input.length() == 4 && input[2] == 'x'){
         // Nfxd3 style (disambiguation + capture)
-        is_capture = true;
+        move.is_capture = true;
         target_file_idx = 3;
         target_rank_idx = 4;
       }
@@ -649,9 +833,9 @@ using namespace std;
         target_file_idx = 2;
         target_rank_idx = 3;
       }
-
       // Extract target index from input, e.g. 'f3' = file 'f', rank '3'
-      int index = get_index(input[target_file_idx], input[target_rank_idx]);
+      //int index = get_index(input[target_file_idx], input[target_rank_idx]);
+      move.to = get_index(input[target_file_idx], input[target_rank_idx]);
       auto& knights = get_knight_list(white_move);
 
       // For disambiguation: file or rank of the from-square may be given
@@ -674,23 +858,22 @@ using namespace std;
           continue;
         }
 
-        if(is_valid_knight_move(i, index, is_capture, white_move)){
-          if(is_capture){
-            remove_piece_index((board[index]->get_piece()->type), index, white_move);
-            board[index]->set_piece(nullptr);
-          }
-          board[index]->set_piece(std::move(board[i]->get_piece()));
-          i = index;
-          has_moved = true;
-          return;
+        if(is_valid_knight_move(i, move.to, move.is_capture, white_move)){
+          move.from = i;
+          move.is_valid = true;
+          return move;
         }
+        
       }
+      move.is_valid = false;
+      return move;
     }
 
     Board::Move Board::pawn_handling(std::string input, bool white_move){  //include en passent
       Move move;
       move.is_capture = (input.find('x')!= std::string::npos);
       auto& pawns = get_pawn_list(white_move);
+      
 
       if(input[input.size() - 2] == '='){    //promotion case
         move.to = get_index(input[input.size()-4], input[input.size()-3]);
@@ -712,76 +895,49 @@ using namespace std;
                 move.promotion_type = 4;
                 break;
             }
+            move.is_valid = true;
             return move;
           }
         }
       }
+
       else{
 
         move.to = get_index(input[input.size()- 2], input[input.size() - 1]);
         if(index_to_row(move.to) == 8){   //if the pawn is on the last row, it has to promote
-          return;
+          move.is_valid = false;
+          return move;
         }
-
+        
         for(int& i : pawns){
+          if(is_valid_en_passent(i, move.to, move.is_capture, white_move)){
+            move.from = i;
+            move.is_en_passant = true;
+            return move;
+          }
+
           if(is_valid_pawn_move(i, move.to, move.is_capture, white_move)){
             move.from = i;
-            /*
-            auto& pawns_vec = white_move ? white_pawns : black_pawns;
-            for (int& i: pawns_vec) {   //remark all moved two flags 
-              if (board[i] && board[i]->get_piece()) {
-                Pawn* p = dynamic_cast<Pawn*>(board[i]->get_piece().get());
-                if(p){
-                  p->just_moved_two = false;
-                }
-              }
-            }
-
-            if(std::abs(index - i) == 16){    //remark the pawn moved two squares for en passent checks
-              Pawn* pawn = dynamic_cast<Pawn*>(board[index]->get_piece().get());
-              if (pawn){
-                pawn->just_moved_two = true;
-              }
-            }*/
-            
-            return;
+            move.is_valid = true;
+            return move;
           }
         }
       }
+      move.is_valid = false;
+      return move;
     }
 
-    Board::Move Board::Castles_handling(std::string input, bool white_move){
-
+    Board::Move Board::Castles_handling(bool length, bool white_move){
+      Move move;
       if(is_valid_castling(input, white_move)){
-        std::cout << endl << "is_valid_castling";
-        int r_index, r_index_start, k_index, k_index_start;
-        if(input.length() == 5){
-          r_index = (white_move ? 3 : 59);
-          r_index_start = (white_move ? 0 : 56);
-          k_index = (white_move ? 2 : 58);
-          
-        } 
-        else{
-          r_index = (white_move ? 5 : 61);
-          r_index_start = (white_move ? 7 : 63);
-          k_index = (white_move ? 6 : 62);
-        }
-        k_index_start = (white_move ? 4 : 60);
-
-        board[r_index]->set_piece(move(board[r_index_start]->get_piece()));
-        board[k_index]->set_piece(move(board[k_index_start]->get_piece()));
-        (white_move ? King_w_pos : King_b_pos) = k_index;
-        auto& rooks = (white_move ? white_rooks : black_rooks);
-        for(int& i: rooks){   //update the rooks position
-          if(i == r_index_start){
-            i = r_index;
-            break; 
-          }
-        }
-        has_moved = true;
-        return;
-        
+        move.is_castle = true;
+        move.from = (white_move ? 4 : 60);
+        move.to = (length ? (white_move ? 6 : 62) : (white_move ? 2 : 58));
+        move.is_valid = true;
+        return move;
       }
+      move.is_valid = false;
+      return move;
     }
 
     /*Get List functions*/
@@ -1004,10 +1160,11 @@ using namespace std;
     }
     
     bool Board::is_valid_en_passent(int from, int to, bool is_capture, bool white_move){
-      if(index_to_row(from) != 5){
-        return false; //pawn is on the incorrect row to perform en passent
-      }
+      /*
+      if(index_to_row(from) == 4 || index_to_row(from) == 3){
 
+        return false; //pawn is on the incorrect row to perform en passent
+      }*/
       if(!board[from]->get_piece()){
         return false;   //no piece to move
       }
@@ -1016,14 +1173,13 @@ using namespace std;
       if(piece->type != 5 || piece->color != white_move){
         return false; //either incorrect color or type
       }
-
       if(!check_en_passant(to, from, white_move)){
         return false;   //does not meet the en passent requirements
       }
       
+      
       if(is_capture){
-        return board[to]->get_piece() &&
-               board[to]->get_piece()->color != white_move;
+        return true;
       }
       else{
         return false; //en passent is always a capture
@@ -1033,7 +1189,6 @@ using namespace std;
 
     bool Board::is_valid_castling(std::string input, bool white_move){
       if (input.length()== 5){
-        std::cout << "in valid function" << endl;
         int r_index = (white_move ? 0 : 56);
         int k_index = (white_move ? 4 : 60);
         
@@ -1042,12 +1197,10 @@ using namespace std;
           board[r_index + 1]->get_piece() != nullptr ||
           board[r_index + 2]->get_piece() != nullptr ||
           board[r_index + 3]->get_piece() != nullptr){
-          std::cout << "in first if statement" << endl;
 
           return false;
         }
         if(!(board[r_index]->get_piece()->type == 2) || !(board[k_index]->get_piece()->type == 0)){   //chekc if the pieces are rook and king
-          std::cout << "in second if statement" << endl;
 
           return false;
         }
@@ -1056,14 +1209,12 @@ using namespace std;
         King* king = dynamic_cast<King*>(board[k_index]->get_piece().get());
 
         if(rook->has_n_moved == false || king->has_n_moved == false){   //cehck if either rook or king have moved
-          std::cout << "in third if statement" << endl;
           return false;
         }
         
         return true;
       }
       else if (input.length()== 3){
-        std::cout << "in valid function" << endl;
 
         int r_index = (white_move ? 7 : 63);
         int k_index = (white_move ? 4 : 60);
@@ -1072,11 +1223,9 @@ using namespace std;
           !board[k_index]->get_piece() ||
           board[r_index - 1]->get_piece() != nullptr ||
           board[r_index - 2]->get_piece() != nullptr){
-          std::cout << "in first if statement" << endl;
           return false;
         }
         if(!(board[r_index]->get_piece()->type == 2) || !(board[k_index]->get_piece()->type == 0)){   //chekc if the pieces are rook and king
-          std::cout << "in second if statement" << endl;
           return false;
         }
 
@@ -1084,7 +1233,6 @@ using namespace std;
         King* king = dynamic_cast<King*>(board[k_index]->get_piece().get());
 
         if(rook->has_n_moved == false || king->has_n_moved == false){   //cehck if either rook or king have moved
-          std::cout << "in third if statement" << endl;
           return false;
         }
         
@@ -1305,7 +1453,7 @@ using namespace std;
         }
     }
 }
-
+/*
     bool Board::check_en_passant(int to, int from, bool white_move){
       // Pawns can only move diagonally by 1 file (col) and 1 rank (row) for en passant
       int from_row = index_to_row(from);
@@ -1347,6 +1495,42 @@ using namespace std;
 
       return true;
 }
+*/
+bool Board::check_en_passant(int to, int from, bool white_move) {
+    int from_row = index_to_row(from);  // 0..7
+    int from_col = index_to_col(from);  // 0..7
+    int to_row   = index_to_row(to);
+    int to_col   = index_to_col(to);
+
+    // Must be diagonal by exactly 1 column
+    if (std::abs(from_col - to_col) != 1) return false;
+
+    // White moves up (row+1), Black moves down (row-1)
+    if ((white_move && to_row - from_row != 1) ||
+        (!white_move && from_row - to_row != 1)) {
+        return false;
+    }
+
+    // Destination must be empty
+    if (!is_on_board(to_row, to_col)) return false;
+    if (board[to] && board[to]->get_piece() != nullptr) return false;
+
+    // Captured pawn is "behind" the destination square
+    int captured_index = white_move ? to - 8 : to + 8;
+    if (captured_index < 0 || captured_index >= 64) return false;
+
+    if (!board[captured_index] || !board[captured_index]->get_piece()) return false;
+
+    // Must be an enemy pawn
+    Pawn* captured_pawn = dynamic_cast<Pawn*>(board[captured_index]->get_piece().get());
+    if (!captured_pawn) return false;
+    if (captured_pawn->color == white_move) return false;
+
+    // Must have just moved two squares
+    if (!captured_pawn->just_moved_two) return false;
+
+    return true;
+}
 
 /*get functions*/
 
@@ -1354,8 +1538,7 @@ using namespace std;
       int col =  1 + (letter -'a');
       int row = (number -'0');
 
-      int index = (((row-1)*8)+(col -1));   //get the 0 based square index
-      return index;
+      return  (((row-1)*8)+(col -1));;
     }
 
     int Board::get_col(char letter){
@@ -1369,11 +1552,11 @@ using namespace std;
     }
 
     int Board::index_to_row(int index){
-      return (1 + (index / 8));
+      return (index / 8);
     }
 
     int Board::index_to_col(int index){
-      return (1 + (index % 8));
+      return (index % 8);
     }
 
 /*Sqaure functionalities*/

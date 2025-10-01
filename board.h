@@ -24,8 +24,8 @@ public:
 
         std::unique_ptr<Piece> captured_piece; // piece that was on the 'to' square before move (nullptr if empty)
         
-        bool prev_has_moved;        // whether the moving piece had moved before
-        bool prev_just_moved_two;   // previous state of the just_moved_two flag for pawns
+        bool prev_has_moved = false;        // whether the moving piece had moved before
+        bool prev_just_moved_two = false;   // previous state of the just_moved_two flag for pawns
 
         int prev_king_w_pos, prev_king_b_pos; // previous king positions
 
@@ -63,10 +63,11 @@ public:
 
         int from;
         int to;
-        int promotion_type; //-1 means no promotion
-        bool is_capture;
-        bool is_castle;
-        bool is_en_passant;
+        int promotion_type = -1; //-1 means no promotion
+        bool is_capture = 0;
+        bool is_castle = 0;
+        bool is_en_passant = 0;
+        bool is_valid = 0;
     };
     char return_piece_letter(int p_type);
     Board();
@@ -81,18 +82,24 @@ public:
     int get_row(char number);
     int index_to_row(int index);
     int index_to_col(int index);
+    bool is_on_board(int row, int col);
+    int rc_to_index(int row, int col);
     void remove_piece_index(int type, int index, bool white_move);
     void add_piece_index(int type, int index, bool white_move);
-    UndoState make_move(Move& move, bool white_move);
+    UndoState make_move(const Move& move, bool white_move);
     void unmake_move(Move& move, UndoState& undo, bool white_move);
+    bool check_for_checks(bool white_move);
+    bool check_for_checkmate(bool white_move);
+    vector<Move> find_moves (bool white_move);
 
-    void King_handling(std::string input, bool white_move);
-    void Queen_handling(std::string input, bool white_move);
-    void Rook_handling(std::string input, bool white_move);
-    void Bishop_handling(std::string input, bool white_move);
-    void Knight_handling(std::string input, bool white_move);
-    void pawn_handling(std::string input, bool white_move);
-    void Castles_handling(std::string input, bool white_move);
+    
+    Board::Move King_handling(std::string input, bool white_move);
+    Board::Move Queen_handling(std::string input, bool white_move);
+    Board::Move Rook_handling(std::string input, bool white_move);
+    Board::Move Bishop_handling(std::string input, bool white_move);
+    Board::Move Knight_handling(std::string input, bool white_move);
+    Board::Move pawn_handling(std::string input, bool white_move);
+    Board::Move Castles_handling(bool length, bool white_move);
 
     bool check_k_index(int targ_index, int K_pos);
     bool check_q_index(int targ_index, int Q_pos);

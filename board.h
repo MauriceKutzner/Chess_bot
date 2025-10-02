@@ -91,6 +91,7 @@ public:
     bool check_for_checks(bool white_move);
     bool check_for_checkmate(bool white_move);
     vector<Move> find_moves (bool white_move);
+    void input_to_var (std::string input, bool white_move);
 
     
     Board::Move King_handling(std::string input, bool white_move);

@@ -656,8 +656,12 @@ using namespace std;
       vector<Move> legal_moves;
       auto pawns = (white_move ? white_pawns : black_pawns);
       for(auto& i : pawns){
-
+        
       }
+    }
+
+    void Board::input_to_var(std::string input, bool white_move){
+
     }
 
     /*Handling functions*/
@@ -929,7 +933,7 @@ using namespace std;
 
     Board::Move Board::Castles_handling(bool length, bool white_move){
       Move move;
-      if(is_valid_castling(input, white_move)){
+      if(is_valid_castling(length, white_move)){
         move.is_castle = true;
         move.from = (white_move ? 4 : 60);
         move.to = (length ? (white_move ? 6 : 62) : (white_move ? 2 : 58));

@@ -90,16 +90,16 @@ public:
     void unmake_move(Move& move, UndoState& undo, bool white_move);
     bool check_for_checks(bool white_move);
     bool check_for_checkmate(bool white_move);
-    vector<Move> find_moves (bool white_move);
-    void input_to_var (std::string input, bool white_move);
+    std::vector<Board::Move> find_moves (bool white_move);
+    bool input_to_var (std::string input, bool white_move);
 
     
-    Board::Move King_handling(std::string input, bool white_move);
-    Board::Move Queen_handling(std::string input, bool white_move);
-    Board::Move Rook_handling(std::string input, bool white_move);
-    Board::Move Bishop_handling(std::string input, bool white_move);
-    Board::Move Knight_handling(std::string input, bool white_move);
-    Board::Move pawn_handling(std::string input, bool white_move);
+    Board::Move King_handling(Board::Move move, bool white_move);
+    Board::Move Queen_handling(std::string input, Board::Move move, bool algorithm, bool white_move);
+    Board::Move Rook_handling(std::string input, Board::Move move, bool white_move, bool algorithm);
+    Board::Move Bishop_handling(std::string input, Board::Move move, bool white_move, bool algorithm);
+    Board::Move Knight_handling(std::string input, Board::Move move, bool white_move, bool algorithm);
+    Board::Move pawn_handling(std::string input, Board::Move move, bool white_move, bool algorithm);
     Board::Move Castles_handling(bool length, bool white_move);
 
     bool check_k_index(int targ_index, int K_pos);
@@ -119,7 +119,7 @@ public:
     bool is_valid_pawn_move(int from, int to, bool is_capture, bool white_move);
     bool is_valid_promotion(int from, int to, bool is_capture, bool white_move);
     bool is_valid_en_passent(int from, int to, bool is_capture, bool white_move);
-    bool is_valid_castling(std::string input, bool white_move);
+    bool is_valid_castling(bool length, bool white_move);
 
 
     std::vector<int>& get_rook_list(bool white_move);

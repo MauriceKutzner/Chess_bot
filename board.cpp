@@ -71,33 +71,7 @@ using namespace std;
         black_pawns.push_back(i);   //update pawn position
       }      
     }
-/*
-    void Board::print_board(){  
-      std::cout << endl << "    A   B   C   D   E   F   G   H " << endl << "  ---------------------------------" << endl << 1;
-      for(int i = 0 ; i<64; i++){
-        
-        if((i%8 == 0) && i != 0){
-          std::cout << " |";
-          std::cout << " " << (i / 8 ) << endl << "  ---------------------------------" << endl << (i/8+1);
-        }
-          if (board[i]->get_piece()){
-            if(board[i]->get_piece()->color == true){
-              std::cout << " | " << return_piece_letter(return_p_type(board[i]->get_piece()));
-            }
-            else{
-              std::cout << " | " << char(tolower(return_piece_letter(return_p_type(board[i]->get_piece()))));
 
-            }
-          } 
-          else{
-            std::cout << " |  ";
-          }
-      }
-      std::cout << " |";
-          std::cout << " 8" << endl << "  ---------------------------------" << endl<< "    A   B   C   D   E   F   G   H " << endl << endl ;
-      
-    }
-*/
     void Board::print_board() {
     std::cout << "\n    A   B   C   D   E   F   G   H \n";
     std::cout << "  ---------------------------------\n";
@@ -126,7 +100,7 @@ using namespace std;
 
     std::cout << "    A   B   C   D   E   F   G   H \n\n";
 }
-
+/*
     void Board::move_check(std::string input, bool white_move){
       UndoState undo;
       Move move;
@@ -215,7 +189,7 @@ using namespace std;
           return;
       }
     }
-
+*/
     void Board::remove_piece_index(int type, int index, bool white_move){
       switch(type){
         case 1:{     //Queen got captured
@@ -289,11 +263,13 @@ using namespace std;
       bool white_move = true;       //this tells the program who is to move
       has_moved = false;
       int a = 5;
+      bool correct;
       while( a != 2){
-        while(has_moved == false){
+        do{
           print_board();
+          std::cout << (white_move ? "whites turn" : "blacks turn") << endl;
           std::cin >> input;
-          if(input.length() < 2){
+          if(input.length() < 2 ){
             continue;
           }
           if(input == "exit"){
@@ -301,12 +277,13 @@ using namespace std;
             a = 2;
             break;
           }
-          move_check(input, white_move);
-        }
+          correct = input_to_var(input, white_move);
+        }while(!correct);
         white_move = !white_move;     //for the next turn, the other player has his turn
-        
+        correct = false;
         has_moved = false;
         //clear_console();
+        
       }
     }
     
@@ -362,7 +339,7 @@ using namespace std;
       //board[move.from]->set_piece(nullptr);
       board[move.to]->get_piece()->has_moved = true;
       // Update piece lists
-      print_board();
+      //print_board();
       switch(piece_type){
         case (0):{
           int King_pos = white_move ? King_w_pos : King_b_pos;
@@ -596,15 +573,19 @@ using namespace std;
       const int bishop_dirs[4][2] = {{1,1}, {1,-1}, {-1,1}, {-1,-1}};
 
       // Rook/Queen
-      for (auto [dr, dc] : rook_dirs) {
+      for (auto [dr, dc] : rook_dirs){
         int r = king_row, c = king_col;
-        while (true) {
+        while (true){
           r += dr; c += dc;
-          if (!is_on_board(r, c)) break;
+          if (!is_on_board(r, c)){ 
+            break;
+          }
           int idx = rc_to_index(r, c);
-          if (board[idx] && board[idx]->get_piece()) {
+          if (board[idx] && board[idx]->get_piece()){
             auto& p = board[idx]->get_piece();
-            if (p->color != white_move && (p->type == 2 || p->type == 1)) return true; // rook or queen
+            if (p->color != white_move && (p->type == 2 || p->type == 1)){
+              return true; // rook or queen
+            }
             break;
           }
         }
@@ -612,13 +593,19 @@ using namespace std;
       // Bishop/Queen
       for (auto [dr, dc] : bishop_dirs) {
         int r = king_row, c = king_col;
-        while (true) {
+        while(true){
           r += dr; c += dc;
-          if (!is_on_board(r, c)) break;
+          if (!is_on_board(r, c)){ 
+            break;
+          }
           int idx = rc_to_index(r, c);
-          if (board[idx] && board[idx]->get_piece()) {
+          std::cout << "the index is: " << idx << endl;
+          if(board[idx] && board[idx]->get_piece()){
             auto& p = board[idx]->get_piece();
-            if (p->color != white_move && (p->type == 3 || p->type == 1)) return true; // bishop or queen
+            if (p->color != white_move && (p->type == 3 || p->type == 1)){
+              
+              return true;
+            } // bishop or queen
             break;
           }
         }
@@ -651,27 +638,145 @@ using namespace std;
     int Board::rc_to_index(int row, int col){
       return (((row)*8)+(col));
     }
+/*
 
     vector<Board::Move> Board::find_moves(bool white_move){
-      vector<Move> legal_moves;
+      /*vector<Move> legal_moves;
       auto pawns = (white_move ? white_pawns : black_pawns);
       for(auto& i : pawns){
         
       }
+     return 
     }
+*/
+    bool Board::input_to_var(std::string input, bool white_move){
+      Move move;
+      UndoState undo;
+      if(input[0]== 'o' || input[0] == '0' || input[0] == 'O'){     //special case for castles
+        bool length = (input.length() < 4);
 
-    void Board::input_to_var(std::string input, bool white_move){
+
+        move = Castles_handling(length, white_move);
+        
+          if(move.is_valid){
+
+            undo = make_move(move,white_move);
+            if(check_for_checks(white_move)){
+              std::cout << "King in Check!" << endl;
+              unmake_move(move, undo, white_move);
+              return false;
+            }
+            return true;
+          }
+        return false;
+      }
+      else if(isupper(input[0]) == false){      //if the first letter is not capitalized, it is a pawn move
+        move = pawn_handling(input,move, white_move, false);
+        if(move.is_valid){
+          undo = make_move(move,white_move);
+          if(check_for_checks(white_move)){
+            std::cout << "King in Check!" << endl;
+            unmake_move(move, undo, white_move);
+            return false;    
+          }
+          return true;
+        }
+        else{
+          std::cout<< "not valid" << endl;
+          return false;
+        }
+        return true;
+      }
+
+      else switch(input[0]){
+        case 'K':
+          for(auto i: input){
+            if(i == 'x'){
+              move.is_capture =true;
+              break;
+            }
+          }
+          move.from = (white_move ? King_w_pos : King_b_pos);
+          move.to = get_index(input[input.length()-2],input[input.length()-1]);
+          move = King_handling(move, white_move);
+          if(move.is_valid){
+            undo = make_move(move,white_move);
+            if(check_for_checks(white_move)){
+              std::cout << "King in Check!" << endl;
+
+              unmake_move(move, undo, white_move);
+              return false;
+            }
+            return true;
+          }
+          
+          return false;
+        case 'Q':        
+          move = Queen_handling(input, move, white_move, false);
+          if(move.is_valid){
+            undo = make_move(move,white_move);
+            if(check_for_checks(white_move)){
+              std::cout << "King in Check!" << endl;
+
+              unmake_move(move, undo, white_move);
+              return false;
+            }
+            return true;
+          }
+          
+          return false;
+
+        case 'R':     
+          
+          move = Rook_handling(input, move, white_move, false);
+          if(move.is_valid){
+            
+            undo = make_move(move,white_move);
+            print_board();
+            if(check_for_checks(white_move)){
+              std::cout << "King in Check!" << endl;
+
+              unmake_move(move, undo, white_move);
+              return false;
+            }
+            return true;
+          }
+          
+          return false;
+        case 'B':
+          move = Bishop_handling(input, move, white_move, false);
+          if(move.is_valid){
+              undo = make_move(move,white_move);
+            if(check_for_checks(white_move)){
+              std::cout << "King in Check!" << endl;
+              unmake_move(move, undo, white_move);
+              return false;
+            }
+            return true;
+          }
+          return false;
+        case 'N':
+          move = Knight_handling(input, move, white_move, false);
+          if(move.is_valid){
+              undo = make_move(move,white_move);
+            if(check_for_checks(white_move)){
+              std::cout << "King in Check!" << endl;
+              unmake_move(move, undo, white_move);
+              return false;
+            }
+            return true;
+          }
+          return false;
+        default:
+          return false;
 
     }
+  }
 
     /*Handling functions*/
     
-    Board::Move Board::King_handling(std::string input, bool white_move){
-        Move move;
-        move.is_capture = (input[1] == 'x');
-        move.to = get_index(input[1], input[2]);
-        move.from = (white_move ? King_w_pos : King_b_pos);   //selects correct king
-
+    Board::Move Board::King_handling(Board::Move move, bool white_move){
+        
         if(is_valid_king_move(move.from, move.to, move.is_capture, white_move)){
           move.is_valid = true;
           return move;
@@ -680,250 +785,285 @@ using namespace std;
         return move;
     }
       
-    Board::Move Board::Queen_handling(std::string input, bool white_move){
-      Move move;
-      move.is_capture = (input.find('x') != std::string::npos);   //detect capture
-
-      // Get the last two chars for target square
-      move.to = get_index(input[input.size() - 2], input[input.size() - 1]);
-
-      // Extract disambiguation info if present (e.g., Qbd4 or Q3d4)
-      char disambig_file = '\0';
-      char disambig_rank = '\0';
-      if (input.size() > (move.is_capture ? 4 : 3)) {
-        // Example: Qbd4 or Qbxd4 → char after 'Q' but before 'x' or target square
-        int start_pos = 1; 
-        if (move.is_capture && input[1] == 'x'){
-          start_pos = 2;
-        }
-        if (std::isalpha(input[start_pos])){
-          disambig_file = input[start_pos];
-        }
-        if (std::isdigit(input[start_pos])){
-          disambig_rank = input[start_pos];
-        }
+    Board::Move Board::Queen_handling(std::string input, Board::Move move, bool white_move, bool algorithm){
+      if(algorithm == true && is_valid_Queen_move(move.from, move.to, move.is_capture, white_move)){
+        //easier to use for move generation
+        move.is_valid = true;
+        return move;
       }
 
-      // Get correct queen list
-      auto& queens = get_queen_list(white_move);
+      else if(algorithm == false){
+        //more suitable for normal input
+        move.is_capture = (input.find('x') != std::string::npos);   //detect capture
 
-      for(int& i : queens){
-        // Skip if disambiguation doesn't match
-        int from_file = (i % 8) + 'a';
-        int from_rank = (i / 8) + '1';
-        if((disambig_file != '\0' && disambig_file != from_file) ||
-          (disambig_rank != '\0' && disambig_rank != from_rank)){
-          continue;
+        // Get the last two chars for target square
+        move.to = get_index(input[input.size() - 2], input[input.size() - 1]);
+
+        // Extract disambiguation info if present (e.g., Qbd4 or Q3d4)
+        char disambig_file = '\0';
+        char disambig_rank = '\0';
+        if (input.size() > (move.is_capture ? 4 : 3)) {
+          // Example: Qbd4 or Qbxd4 → char after 'Q' but before 'x' or target square
+          int start_pos = 1; 
+          if (move.is_capture && input[1] == 'x'){
+            start_pos = 2;
+          }
+          if (std::isalpha(input[start_pos])){
+            disambig_file = input[start_pos];
+          }
+          if (std::isdigit(input[start_pos])){
+            disambig_rank = input[start_pos];
+          }
         }
 
-        if(is_valid_Queen_move(i, move.to, move.is_capture, white_move)){
-          move.from = i;
-          move.is_valid = true;
-          return move;
+        // Get correct queen list
+        auto& queens = get_queen_list(white_move);
+
+        for(int& i : queens){
+          // Skip if disambiguation doesn't match
+          int from_file = (i % 8) + 'a';
+          int from_rank = (i / 8) + '1';
+          if((disambig_file != '\0' && disambig_file != from_file) ||
+            (disambig_rank != '\0' && disambig_rank != from_rank)){
+            continue;
+          }
+
+          if(is_valid_Queen_move(i, move.to, move.is_capture, white_move)){
+            move.from = i;
+            move.is_valid = true;
+            return move;
+          }
         }
       }
-
-    move.is_valid = false;
-    return move;
+      move.is_valid = false;
+      return move;
     }
 
-    Board::Move Board::Rook_handling(std::string input, bool white_move){
-      Move move;
-      move.is_capture = false;
-      int target_file_idx = 1;  // index in input for target file letter
-      int target_rank_idx = 2;  // index in input for target rank number
-
-      if(input.length() == 4 && input[1] == 'x'){
-        //Rxf3 style
-        move.is_capture = true;
-        target_file_idx = 2;
-        target_rank_idx = 3;
+    Board::Move Board::Rook_handling(std::string input, Board::Move move, bool white_move, bool algorithm){
+      if(algorithm == true && is_valid_rook_move(move.from, move.to, move.is_capture, white_move)){
+        //easier to use for move generation
+        move.is_valid = true;
+        return move;
       }
-      else if(input.length() == 4 && input[2] == 'x'){
-        //Rfxd3 style (disambiguation + capture)
-        move.is_capture = true;
-        target_file_idx = 3;
-        target_rank_idx = 4;
-      }
-      else if(input.length() == 3){
-        //Rf3 style (simple move)
-        //indices already set
-      }
-      else if(input.length() == 4 && input[2] != 'x'){
-        //Rfd3 style (disambiguation no capture)
-        target_file_idx = 2;
-        target_rank_idx = 3;
-      }
+      if(algorithm == false){
+        std::cout<<"in correct if statement" << endl;
+        move.is_capture = false;
+        int target_file_idx = 1;  // index in input for target file letter
+        int target_rank_idx = 2;  // index in input for target rank number
 
-      // Extract target index from input, e.g. 'f3' = file 'f', rank '3'
-      move.to = get_index(input[target_file_idx], input[target_rank_idx]);
-      auto& rooks = get_rook_list(white_move);
-
-      // For disambiguation: file or rank of the from-square may be given
-      char disambig_file = '\0';
-      char disambig_rank = '\0';
-
-      if(input.length() >= 4 && input[1] != 'x'){
-        // If there's a disambiguation char, it will be at input[1]
-        if (input[1] >= 'a' && input[1] <= 'h') disambig_file = input[1];
-        else if (input[1] >= '1' && input[1] <= '8') disambig_rank = input[1];
-      }
-
-      for(int& i : rooks){
-        // Check disambiguation matches if present
-        int from_file = (i % 8) + 'a';
-        int from_rank = (i / 8) + '1';
-
-        if((disambig_file != '\0' && disambig_file != from_file) ||
-          (disambig_rank != '\0' && disambig_rank != from_rank)){
-          continue;
+        if(input.length() == 4 && input[1] == 'x'){
+          //Rxf3 style
+          move.is_capture = true;
+          target_file_idx = 2;
+          target_rank_idx = 3;
+        }
+        else if(input.length() == 4 && input[2] == 'x'){
+          //Rfxd3 style (disambiguation + capture)
+          move.is_capture = true;
+          target_file_idx = 3;
+          target_rank_idx = 4;
+        }
+        else if(input.length() == 3){
+          //Rf3 style (simple move)
+          //indices already set
+        }
+        else if(input.length() == 4 && input[2] != 'x'){
+          //Rfd3 style (disambiguation no capture)
+          target_file_idx = 2;
+          target_rank_idx = 3;
         }
 
-        if(is_valid_rook_move(i, move.to, move.is_capture, white_move)){
-          move.from = i;
-          move.is_valid = true;
-          return move;
+        // Extract target index from input, e.g. 'f3' = file 'f', rank '3'
+        move.to = get_index(input[target_file_idx], input[target_rank_idx]);
+        auto& rooks = get_rook_list(white_move);
+
+        // For disambiguation: file or rank of the from-square may be given
+        char disambig_file = '\0';
+        char disambig_rank = '\0';
+
+        if(input.length() >= 4 && input[1] != 'x'){
+          // If there's a disambiguation char, it will be at input[1]
+          if (input[1] >= 'a' && input[1] <= 'h') disambig_file = input[1];
+          else if (input[1] >= '1' && input[1] <= '8') disambig_rank = input[1];
+        }
+
+        for(int& i : rooks){
+          // Check disambiguation matches if present
+          int from_file = (i % 8) + 'a';
+          int from_rank = (i / 8) + '1';
+
+          if((disambig_file != '\0' && disambig_file != from_file) ||
+            (disambig_rank != '\0' && disambig_rank != from_rank)){
+            continue;
+          }
+
+          if(is_valid_rook_move(i, move.to, move.is_capture, white_move)){
+            move.from = i;
+            move.is_valid = true;
+            return move;
+          }
         }
       }
       move.is_valid = true;
       return move;
     }
 
-    Board::Move Board::Bishop_handling(std::string input, bool white_move){
-      Move move;
-      move.is_capture = (input[1] == 'x');
-     
-      move.to = move.is_capture
-        ? get_index(input[2], input[3]) // capture: skip 'x'
-        : get_index(input[1], input[2]); // normal move    
+    Board::Move Board::Bishop_handling(std::string input, Board::Move move, bool white_move, bool algorithm){
+      if(algorithm == true && is_valid_bishop_move(move.from, move.to, move.is_capture, white_move)){
+        //easier to use for move generation
+        move.is_valid = true;
+        return move;
+      }
+      else if(algorithm == false){
+        move.is_capture = (input[1] == 'x');
+      
+        move.to = move.is_capture
+          ? get_index(input[2], input[3]) // capture: skip 'x'
+          : get_index(input[1], input[2]); // normal move    
 
-      auto& bishops = get_bishop_list(white_move);
+        auto& bishops = get_bishop_list(white_move);
 
-      for(int& i : bishops){
-        if(is_valid_bishop_move(i, move.to, move.is_capture, white_move)){
-          move.from = i;
-          move.is_valid = true;
-          return move;
+        for(int& i : bishops){
+          if(is_valid_bishop_move(i, move.to, move.is_capture, white_move)){
+            move.from = i;
+            move.is_valid = true;
+            return move;
+          }
         }
       }
       move.is_valid = false;
       return move;
     } 
     
-    Board::Move Board::Knight_handling(std::string input, bool white_move){
-      Move move;
-      move.is_capture = false;
-      int target_file_idx = 1;  // index in input for target file letter
-      int target_rank_idx = 2;  // index in input for target rank number
-
-      if(input.length() == 4 && input[1] == 'x'){
-        // Nxf3 style
-        move.is_capture = true;
-        target_file_idx = 2;
-        target_rank_idx = 3;
+    Board::Move Board::Knight_handling(std::string input, Board::Move move, bool white_move, bool algorithm){
+      if(algorithm == true && is_valid_knight_move(move.from, move.to, move.is_capture, white_move)){
+        //easier to use for move generation
+        move.is_valid = true;
+        return move;
       }
-      else if(input.length() == 4 && input[2] == 'x'){
-        // Nfxd3 style (disambiguation + capture)
-        move.is_capture = true;
-        target_file_idx = 3;
-        target_rank_idx = 4;
-      }
-      else if(input.length() == 3){
-        // Nf3 style (simple move)
-        // indices already set
-      }
-      else if(input.length() == 4 && input[2] != 'x'){
-        // Nfd3 style (disambiguation no capture)
-        target_file_idx = 2;
-        target_rank_idx = 3;
-      }
-      // Extract target index from input, e.g. 'f3' = file 'f', rank '3'
-      //int index = get_index(input[target_file_idx], input[target_rank_idx]);
-      move.to = get_index(input[target_file_idx], input[target_rank_idx]);
-      auto& knights = get_knight_list(white_move);
+      else if(algorithm == false){
+        move.is_capture = false;
+        int target_file_idx = 1;  // index in input for target file letter
+        int target_rank_idx = 2;  // index in input for target rank number
 
-      // For disambiguation: file or rank of the from-square may be given
-      char disambig_file = '\0';
-      char disambig_rank = '\0';
+        if(input.length() == 4 && input[1] == 'x'){
+          // Nxf3 style
+          move.is_capture = true;
+          target_file_idx = 2;
+          target_rank_idx = 3;
+        }
+        else if(input.length() == 4 && input[2] == 'x'){
+          // Nfxd3 style (disambiguation + capture)
+          move.is_capture = true;
+          target_file_idx = 3;
+          target_rank_idx = 4;
+        }
+        else if(input.length() == 3){
+          // Nf3 style (simple move)
+          // indices already set
+        }
+        else if(input.length() == 4 && input[2] != 'x'){
+          // Nfd3 style (disambiguation no capture)
+          target_file_idx = 2;
+          target_rank_idx = 3;
+        }
+        // Extract target index from input, e.g. 'f3' = file 'f', rank '3'
+        //int index = get_index(input[target_file_idx], input[target_rank_idx]);
+        move.to = get_index(input[target_file_idx], input[target_rank_idx]);
+        auto& knights = get_knight_list(white_move);
 
-      if(input.length() >= 4 && input[1] != 'x'){
-        // If there's a disambiguation char, it will be at input[1]
-        if (input[1] >= 'a' && input[1] <= 'h') disambig_file = input[1];
-        else if (input[1] >= '1' && input[1] <= '8') disambig_rank = input[1];
-      }
+        // For disambiguation: file or rank of the from-square may be given
+        char disambig_file = '\0';
+        char disambig_rank = '\0';
 
-      for(int& i : knights){
-        // Check disambiguation matches if present
-        int from_file = (i % 8) + 'a';
-        int from_rank = (i / 8) + '1';
-
-        if((disambig_file != '\0' && disambig_file != from_file) ||
-          (disambig_rank != '\0' && disambig_rank != from_rank)){
-          continue;
+        if(input.length() >= 4 && input[1] != 'x'){
+          // If there's a disambiguation char, it will be at input[1]
+          if (input[1] >= 'a' && input[1] <= 'h') disambig_file = input[1];
+          else if (input[1] >= '1' && input[1] <= '8') disambig_rank = input[1];
         }
 
-        if(is_valid_knight_move(i, move.to, move.is_capture, white_move)){
-          move.from = i;
-          move.is_valid = true;
-          return move;
+        for(int& i : knights){
+          // Check disambiguation matches if present
+          int from_file = (i % 8) + 'a';
+          int from_rank = (i / 8) + '1';
+
+          if((disambig_file != '\0' && disambig_file != from_file) ||
+            (disambig_rank != '\0' && disambig_rank != from_rank)){
+            continue;
+          }
+
+          if(is_valid_knight_move(i, move.to, move.is_capture, white_move)){
+            move.from = i;
+            move.is_valid = true;
+            return move;
+          }
+          
         }
-        
       }
       move.is_valid = false;
       return move;
     }
 
-    Board::Move Board::pawn_handling(std::string input, bool white_move){  //include en passent
-      Move move;
-      move.is_capture = (input.find('x')!= std::string::npos);
-      auto& pawns = get_pawn_list(white_move);
-      
-
-      if(input[input.size() - 2] == '='){    //promotion case
-        move.to = get_index(input[input.size()-4], input[input.size()-3]);
-        for(int& i : pawns){
-          if(is_valid_promotion(i, move.to, move.is_capture, white_move)){
-            
-            move.from = i;
-            switch(input[input.size() - 1]){
-              case 'Q':
-                move.promotion_type = 1;
-                break;
-              case 'R':
-                move.promotion_type = 2;
-                break;
-              case 'B':
-                move.promotion_type = 3;
-                break;
-              case 'N':
-                move.promotion_type = 4;
-                break;
-            }
-            move.is_valid = true;
-            return move;
-          }
-        }
+    Board::Move Board::pawn_handling(std::string input, Board::Move move, bool white_move, bool algorithm){  //include en passent
+      if(algorithm == true && is_valid_pawn_move(move.from, move.to, move.is_capture, white_move)){
+        //easier to use for move generation
+        move.is_valid = true;
+        return move;
       }
-
-      else{
-
-        move.to = get_index(input[input.size()- 2], input[input.size() - 1]);
-        if(index_to_row(move.to) == 8){   //if the pawn is on the last row, it has to promote
-          move.is_valid = false;
-          return move;
-        }
+      if(algorithm == false){
+        move.is_capture = (input.find('x')!= std::string::npos);
+        auto& pawns = get_pawn_list(white_move);
         
-        for(int& i : pawns){
-          if(is_valid_en_passent(i, move.to, move.is_capture, white_move)){
-            move.from = i;
-            move.is_en_passant = true;
+
+        if(input[input.size() - 2] == '='){    //promotion case
+          move.to = get_index(input[input.size()-4], input[input.size()-3]);
+          std::cout << "detected promotion" << endl;
+          for(int& i : pawns){
+
+            if(is_valid_promotion(i, move.to, move.is_capture, white_move)){
+              std::cout << "is valid promotion" << endl;
+              move.from = i;
+              switch(input[input.size() - 1]){
+                case 'Q':
+                  move.promotion_type = 1;
+                  break;
+                case 'R':
+                  move.promotion_type = 2;
+                  break;
+                case 'B':
+                  move.promotion_type = 3;
+                  break;
+                case 'N':
+                  move.promotion_type = 4;
+                  break;
+              }
+              move.is_valid = true;
+              return move;
+            }
+          }
+        }
+
+        else{
+
+          move.to = get_index(input[input.size()- 2], input[input.size() - 1]);
+          if(index_to_row(move.to) == 8){   //if the pawn is on the last row, it has to promote
+            move.is_valid = false;
             return move;
           }
+          
+          for(int& i : pawns){
+            if(is_valid_en_passent(i, move.to, move.is_capture, white_move)){
+              move.from = i;
+              move.is_en_passant = true;
+              move.is_valid = true;
+              return move;
+            }
 
-          if(is_valid_pawn_move(i, move.to, move.is_capture, white_move)){
-            move.from = i;
-            move.is_valid = true;
-            return move;
+            if(is_valid_pawn_move(i, move.to, move.is_capture, white_move)){
+              move.from = i;
+              move.is_valid = true;
+              return move;
+            }
           }
         }
       }
@@ -1137,17 +1277,21 @@ using namespace std;
     }
 
     bool Board::is_valid_promotion(int from, int to, bool is_capture, bool white_move){
-      if(index_to_row(from) != 7){
+      if(index_to_row(from) != 6){
+        std::cout << "wrong row" << endl;
         return false; //pawn is not on the last row
       }
       if(!board[from]->get_piece()){
+        std::cout << " did not get piece " << endl;
         return false; // No piece to move
       }
       std::unique_ptr<Piece>& piece = board[from]->get_piece();
       if(piece->type != 5 || piece->color != white_move){
+        std::cout << " something color" << endl;
         return false;
       }
       if(!check_p_index(to, from, is_capture, white_move)){
+        std::cout << "check p index function " << endl;
         return false;
       }
 
@@ -1158,6 +1302,7 @@ using namespace std;
       } 
       else{
         // Non-capture must land on an empty square
+        std::cout << "something wiht getting the empty square" << endl;
         return board[to]->get_piece() == nullptr;
       }
 
@@ -1191,8 +1336,8 @@ using namespace std;
 
     }
 
-    bool Board::is_valid_castling(std::string input, bool white_move){
-      if (input.length()== 5){
+    bool Board::is_valid_castling(bool length, bool white_move){
+      if (length == false){
         int r_index = (white_move ? 0 : 56);
         int k_index = (white_move ? 4 : 60);
         
@@ -1218,7 +1363,7 @@ using namespace std;
         
         return true;
       }
-      else if (input.length()== 3){
+      else if (length == true){
 
         int r_index = (white_move ? 7 : 63);
         int k_index = (white_move ? 4 : 60);

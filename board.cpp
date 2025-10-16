@@ -224,7 +224,6 @@ using namespace std;
     }
 
     void Board::add_piece_index(int type, int index, bool white_move){
-      std::cout<< "problem here";
       switch(type){
         case 1:{     //Queen got added
           std::vector<int>& queens = (!white_move ? white_queens : black_queens);
@@ -480,7 +479,6 @@ using namespace std;
 
       //undo deletion of piece index
       add_piece_index(board[move.from]->get_piece()->type, move.from, white_move);
-
       //handle captures and en passent
       if(move.is_capture){
         if(move.is_en_passant){
@@ -489,8 +487,8 @@ using namespace std;
           add_piece_index(board[captured_index]->get_piece()->type, captured_index, !white_move);
         }
         else{
-          board[move.to]->set_piece(std::move(undo.captured_piece));    //return captured piece to original square
           add_piece_index(undo.captured_piece->type, move.to, !white_move); //readd index
+          board[move.to]->set_piece(std::move(undo.captured_piece));    //return captured piece to original square
         }
       }
        
@@ -556,7 +554,7 @@ using namespace std;
       };
       int i =1;
 
-      for (auto [dr, dc] : knight_moves) {
+      for (auto [dr, dc] : knight_moves){
         int r = king_row + dr;
         int c = king_col + dc;
         if (is_on_board(r, c)) {
@@ -568,6 +566,7 @@ using namespace std;
         }
         i++;
       }
+      
       // === 3. Sliding pieces (rook/queen: straight lines, bishop/queen: diagonals) ===
       const int rook_dirs[4][2]   = {{1,0}, {-1,0}, {0,1}, {0,-1}};
       const int bishop_dirs[4][2] = {{1,1}, {1,-1}, {-1,1}, {-1,-1}};
@@ -710,6 +709,7 @@ using namespace std;
           }
           
           return false;
+        case 'D':
         case 'Q':        
           move = Queen_handling(input, move, white_move, false);
           if(move.is_valid){
@@ -725,7 +725,8 @@ using namespace std;
           
           return false;
 
-        case 'R':     
+        case 'R': 
+        case 'T':    
           
           move = Rook_handling(input, move, white_move, false);
           if(move.is_valid){
@@ -743,6 +744,7 @@ using namespace std;
           
           return false;
         case 'B':
+        case 'L':
           move = Bishop_handling(input, move, white_move, false);
           if(move.is_valid){
               undo = make_move(move,white_move);
@@ -755,6 +757,7 @@ using namespace std;
           }
           return false;
         case 'N':
+        case 'S':
           move = Knight_handling(input, move, white_move, false);
           if(move.is_valid){
               undo = make_move(move,white_move);

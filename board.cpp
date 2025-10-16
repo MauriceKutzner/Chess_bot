@@ -12,7 +12,7 @@
 
 using namespace std;
 
-/*Overarching functions*/
+    /*Overarching functions*/
 
     void clear_console() {
         system("cls");
@@ -599,7 +599,6 @@ using namespace std;
             break;
           }
           int idx = rc_to_index(r, c);
-          std::cout << "the index is: " << idx << endl;
           if(board[idx] && board[idx]->get_piece()){
             auto& p = board[idx]->get_piece();
             if (p->color != white_move && (p->type == 3 || p->type == 1)){
@@ -1052,7 +1051,7 @@ using namespace std;
           }
           
           for(int& i : pawns){
-            if(is_valid_en_passent(i, move.to, move.is_capture, white_move)){
+            if(is_valid_en_passant(i, move.to, move.is_capture, white_move)){
               move.from = i;
               move.is_en_passant = true;
               move.is_valid = true;
@@ -1308,7 +1307,7 @@ using namespace std;
 
     }
     
-    bool Board::is_valid_en_passent(int from, int to, bool is_capture, bool white_move){
+    bool Board::is_valid_en_passant(int from, int to, bool is_capture, bool white_move){
       /*
       if(index_to_row(from) == 4 || index_to_row(from) == 3){
 

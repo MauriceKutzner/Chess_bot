@@ -118,7 +118,7 @@ public:
     bool is_valid_knight_move(int from, int to, bool is_capture, bool white_move);
     bool is_valid_pawn_move(int from, int to, bool is_capture, bool white_move);
     bool is_valid_promotion(int from, int to, bool is_capture, bool white_move);
-    bool is_valid_en_passent(int from, int to, bool is_capture, bool white_move);
+    bool is_valid_en_passant(int from, int to, bool is_capture, bool white_move);
     bool is_valid_castling(bool length, bool white_move);
 
 

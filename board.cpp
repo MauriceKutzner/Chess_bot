@@ -263,6 +263,13 @@ using namespace std;
       has_moved = false;
       int a = 5;
       bool correct;
+      vector<Board::Move> found_moves = find_moves(white_move);
+      for(auto i:found_moves){
+        std::cout << "move.from : " << i.from << endl;
+        std::cout << "move.to : " << i.to << endl;
+        std::cout << "move.is_capture : " << i.is_capture << endl;
+        std::cout <<  endl;
+      }
       while( a != 2){
         do{
           print_board();
@@ -637,7 +644,6 @@ using namespace std;
       return (((row)*8)+(col));
     }
 
-
     vector<Board::Move> Board::find_moves(bool white_move){
       vector<Move> legal_moves;     //this stores all legal moves
       std::string placeholder = {};
@@ -685,6 +691,10 @@ using namespace std;
           }
         }
       }
+
+/*ADD en passant*/
+
+
      return legal_moves;
     }
 

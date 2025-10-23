@@ -1647,7 +1647,7 @@ using namespace std;
       return true;
 }
 */
-bool Board::check_en_passant(int to, int from, bool white_move) {
+    bool Board::check_en_passant(int to, int from, bool white_move) {
     int from_row = index_to_row(from);  // 0..7
     int from_col = index_to_col(from);  // 0..7
     int to_row   = index_to_row(to);

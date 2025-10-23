@@ -255,7 +255,7 @@ using namespace std;
         }
       }
     }
-
+   
     void Board::play_game(){
       std::string input;
       //bool is_legal;
@@ -636,17 +636,58 @@ using namespace std;
     int Board::rc_to_index(int row, int col){
       return (((row)*8)+(col));
     }
-/*
+
 
     vector<Board::Move> Board::find_moves(bool white_move){
-      /*vector<Move> legal_moves;
+      vector<Move> legal_moves;     //this stores all legal moves
+      std::string placeholder = {};
+      /*Pawn Moves*/
+
       auto pawns = (white_move ? white_pawns : black_pawns);
+      int offset = (white_move ? -8 : 8);
       for(auto& i : pawns){
-        
+        if(is_on_board(index_to_row(i+ offset), index_to_col(i+ offset)) &&!board[i + offset]->get_piece()){    //there is no piece directly in front
+          Move temp_move;
+          temp_move.to = i + offset;
+          temp_move.from = i;
+          temp_move = pawn_handling(placeholder, temp_move, white_move, true);
+          if(temp_move.is_valid == true){
+            legal_moves.push_back(temp_move);
+          }
+        }
+        if(is_on_board(index_to_row(i+ offset*2), index_to_col(i + 2*offset)) && (i/8) == (white_move ? 1 : 6) && !board[i + (2 * offset)]->get_piece()){    //there is no piece two squares ahead
+          Move temp_move;
+          temp_move.to = i + offset*2;
+          temp_move.from = i;
+          temp_move = pawn_handling(placeholder, temp_move, white_move, true);
+          if(temp_move.is_valid == true){
+            legal_moves.push_back(temp_move);
+          }
+        }
+        if(is_on_board(index_to_row(i+ offset -1), index_to_col(i+ offset -1)) && board[i + offset -1]->get_piece()){
+          Move temp_move;
+          temp_move.to = i + offset-1;
+          temp_move.from = i;
+          temp_move.is_capture = true;
+          temp_move = pawn_handling(placeholder, temp_move, white_move, true);
+          if(temp_move.is_valid == true){
+            legal_moves.push_back(temp_move);
+          }
+        }
+        if(is_on_board(index_to_row(i+ offset +1), index_to_col(i+ offset +1)) && board[i + offset +1]->get_piece()){
+          Move temp_move;
+          temp_move.to = i + offset + 1;
+          temp_move.from = i;
+          temp_move.is_capture = true;
+          temp_move = pawn_handling(placeholder, temp_move, white_move, true);
+          if(temp_move.is_valid == true){
+            legal_moves.push_back(temp_move);
+          }
+        }
       }
-     return 
+     return legal_moves;
     }
-*/
+
     bool Board::input_to_var(std::string input, bool white_move){
       Move move;
       UndoState undo;
@@ -1647,7 +1688,7 @@ using namespace std;
       return true;
 }
 */
-bool Board::check_en_passant(int to, int from, bool white_move) {
+    bool Board::check_en_passant(int to, int from, bool white_move) {
     int from_row = index_to_row(from);  // 0..7
     int from_col = index_to_col(from);  // 0..7
     int to_row   = index_to_row(to);

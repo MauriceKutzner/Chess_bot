@@ -12,6 +12,7 @@
 
 using namespace std;
 
+
 /*Overarching functions*/
 
     void clear_console() {
@@ -79,7 +80,7 @@ using namespace std;
     for (int row = 0; row < 8; row++) {
         std::cout << (row + 1); // print row number on the left
 
-        for (int col = 0; col < 8; col++) {
+        for (int col = 0; col < 8; col++){
             int idx = row * 8 + col;
             std::unique_ptr<Piece>& piece = board[idx]->get_piece();
 
@@ -100,6 +101,8 @@ using namespace std;
 
     std::cout << "    A   B   C   D   E   F   G   H \n\n";
 }
+
+
 /*
     void Board::move_check(std::string input, bool white_move){
       UndoState undo;

@@ -263,16 +263,19 @@ using namespace std;
       has_moved = false;
       int a = 5;
       bool correct;
-      vector<Board::Move> found_moves = find_moves(white_move);
-      for(auto i:found_moves){
-        std::cout << "move.from : " << i.from << endl;
-        std::cout << "move.to : " << i.to << endl;
-        std::cout << "move.is_capture : " << i.is_capture << endl;
-        std::cout <<  endl;
-      }
+      vector<Board::Move> found_moves;
       while( a != 2){
         do{
           print_board();
+          found_moves = find_moves(white_move);
+          for(auto i:found_moves){
+            std::cout << "move.from : " << i.from << endl;
+            std::cout << "move.to : " << i.to <<endl;
+            std::cout << "move.is_capture : " << i.is_capture << endl;
+            std::cout << "move.is_valid : " << i.is_valid << endl;
+
+            std::cout <<  endl;
+          }
           std::cout << (white_move ? "whites turn" : "blacks turn") << endl;
           std::cin >> input;
           if(input.length() < 2 ){
@@ -283,6 +286,7 @@ using namespace std;
             a = 2;
             break;
           }
+          
           correct = input_to_var(input, white_move);
         }while(!correct);
         white_move = !white_move;     //for the next turn, the other player has his turn
@@ -648,15 +652,16 @@ using namespace std;
       vector<Move> legal_moves;     //this stores all legal moves
       std::string placeholder = {};
       /*Pawn Moves*/
-
       auto pawns = (white_move ? white_pawns : black_pawns);
-      int offset = (white_move ? -8 : 8);
+      int offset = (white_move ? 8 : -8);
       for(auto& i : pawns){
-        if(is_on_board(index_to_row(i+ offset), index_to_col(i+ offset)) &&!board[i + offset]->get_piece()){    //there is no piece directly in front
+        if(is_on_board(index_to_row(i+ offset), index_to_col(i+ offset)) && !board[i + offset]->get_piece()){    //there is no piece directly in front
           Move temp_move;
           temp_move.to = i + offset;
           temp_move.from = i;
+          
           temp_move = pawn_handling(placeholder, temp_move, white_move, true);
+
           if(temp_move.is_valid == true){
             legal_moves.push_back(temp_move);
           }
@@ -690,11 +695,44 @@ using namespace std;
             legal_moves.push_back(temp_move);
           }
         }
+        
+        //white en passant
+        
+        if(is_on_board(index_to_row(i + offset +1), index_to_col(i+offset + 1)) && index_to_row(i+1) == (white_move ? 4 : 3) && 
+        board[i +1]->get_piece() ){
+          Move temp_move;
+          temp_move.to = i + offset + 1;
+          temp_move.from = i;
+          temp_move.is_capture = true;
+          temp_move.is_en_passant = true;
+          temp_move = pawn_handling(placeholder, temp_move, white_move, true);
+         
+          if(temp_move.is_valid == true){
+            legal_moves.push_back(temp_move);
+          }
+
+        }
+        if(is_on_board(index_to_row(i+ offset-1), index_to_col(i + offset-1)) && index_to_row(i-1) == (white_move ? 4 : 3) && 
+        board[i -1]->get_piece() ){
+          Move temp_move;
+          temp_move.to = i + offset - 1;
+          temp_move.from = i;
+          temp_move.is_capture = true;
+          temp_move.is_en_passant = true;
+
+          
+          temp_move = pawn_handling(placeholder, temp_move, white_move, true);
+          
+          if(temp_move.is_valid == true){
+            legal_moves.push_back(temp_move);
+          }
+
+        }
       }
-
-/*ADD en passant*/
-
-
+      /*Rook Moves*/
+      auto rooks = (white_move ? white_rooks : black_rooks);
+      for(auto& i : rooks){
+      }
      return legal_moves;
     }
 
@@ -1059,6 +1097,11 @@ using namespace std;
 
     Board::Move Board::pawn_handling(std::string input, Board::Move move, bool white_move, bool algorithm){  //include en passent
       if(algorithm == true && is_valid_pawn_move(move.from, move.to, move.is_capture, white_move)){
+        //easier to use for move generation
+        move.is_valid = true;
+        return move;
+      }
+      if(algorithm == true && is_valid_en_passant(move.from, move.to, move.is_capture, white_move)){
         //easier to use for move generation
         move.is_valid = true;
         return move;

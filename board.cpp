@@ -730,8 +730,57 @@ using namespace std;
         }
       }
       /*Rook Moves*/
+      bool skip = false;
+      vector<int> dir = {1, -1, 8, -8};
       auto rooks = (white_move ? white_rooks : black_rooks);
       for(auto& i : rooks){
+        std::cout << "white_move: "<< i <<endl;
+        for(int j: dir){
+          skip = false;
+
+          
+          for(int k = 1; k <8; k++){    //this loop multiplies the offset
+            if(skip){
+              break;
+            }
+            if(is_on_board(index_to_row(i + j*k),index_to_col(i + j*k)) && board[i+ j*k]->get_piece() && board[i + j*k]->get_piece()->color != white_move){
+              std::cout << "i: " << i <<endl;
+              std::cout << "j: " << j <<endl;
+              std::cout << "k: " << k <<endl;
+
+              Move temp_move;
+              temp_move.to = i + j*k;
+              temp_move.from = i;
+              temp_move.is_capture = true;
+              temp_move = Rook_handling(placeholder, temp_move, white_move, true);
+              
+              if(temp_move.is_valid == true){
+                legal_moves.push_back(temp_move);
+                skip = true;
+                break;
+              }
+              skip = true;
+              break;
+                
+              }
+            if(is_on_board(index_to_row(i + j*k),index_to_col(i + j*k)) && !(board[i + j*k]->get_piece())){
+              Move temp_move;
+              temp_move.to = i + j*k;
+              temp_move.from = i;
+              
+              
+           
+              temp_move = Rook_handling(placeholder, temp_move, white_move, true);
+              if(temp_move.is_valid == true){
+                legal_moves.push_back(temp_move);
+                continue;
+              }
+              
+            }
+            
+            
+          }
+        }
       }
      return legal_moves;
     }

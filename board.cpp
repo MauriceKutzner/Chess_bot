@@ -654,11 +654,11 @@ using namespace std;
       std::string placeholder = {};
       /*Pawn Moves*/
       auto pawns = (white_move ? white_pawns : black_pawns);
-      int offset = (white_move ? 8 : -8);
+      int pawn_dir = (white_move ? 8 : -8);
       for(auto& i : pawns){
-        if(is_on_board(index_to_row(i+ offset), index_to_col(i+ offset)) && !board[i + offset]->get_piece()){    //there is no piece directly in front
+        if(is_on_board(index_to_row(i+ pawn_dir), index_to_col(i+ pawn_dir)) && !board[i + pawn_dir]->get_piece()){    //there is no piece directly in front
           Move temp_move;
-          temp_move.to = i + offset;
+          temp_move.to = i + pawn_dir;
           temp_move.from = i;
           
           temp_move = pawn_handling(placeholder, temp_move, white_move, true);
@@ -667,18 +667,18 @@ using namespace std;
             legal_moves.push_back(temp_move);
           }
         }
-        if(is_on_board(index_to_row(i+ offset*2), index_to_col(i + 2*offset)) && (i/8) == (white_move ? 1 : 6) && !board[i + (2 * offset)]->get_piece()){    //there is no piece two squares ahead
+        if(is_on_board(index_to_row(i+ pawn_dir*2), index_to_col(i + 2*pawn_dir)) && (i/8) == (white_move ? 1 : 6) && !board[i + (2 * pawn_dir)]->get_piece()){    //there is no piece two squares ahead
           Move temp_move;
-          temp_move.to = i + offset*2;
+          temp_move.to = i + pawn_dir*2;
           temp_move.from = i;
           temp_move = pawn_handling(placeholder, temp_move, white_move, true);
           if(temp_move.is_valid == true){
             legal_moves.push_back(temp_move);
           }
         }
-        if(is_on_board(index_to_row(i+ offset -1), index_to_col(i+ offset -1)) && board[i + offset -1]->get_piece()){
+        if(is_on_board(index_to_row(i+ pawn_dir -1), index_to_col(i+ pawn_dir -1)) && board[i + pawn_dir -1]->get_piece()){
           Move temp_move;
-          temp_move.to = i + offset-1;
+          temp_move.to = i + pawn_dir-1;
           temp_move.from = i;
           temp_move.is_capture = true;
           temp_move = pawn_handling(placeholder, temp_move, white_move, true);
@@ -686,9 +686,9 @@ using namespace std;
             legal_moves.push_back(temp_move);
           }
         }
-        if(is_on_board(index_to_row(i+ offset +1), index_to_col(i+ offset +1)) && board[i + offset +1]->get_piece()){
+        if(is_on_board(index_to_row(i+ pawn_dir +1), index_to_col(i+ pawn_dir +1)) && board[i + pawn_dir +1]->get_piece()){
           Move temp_move;
-          temp_move.to = i + offset + 1;
+          temp_move.to = i + pawn_dir + 1;
           temp_move.from = i;
           temp_move.is_capture = true;
           temp_move = pawn_handling(placeholder, temp_move, white_move, true);
@@ -699,10 +699,10 @@ using namespace std;
         
         //white en passant
         
-        if(is_on_board(index_to_row(i + offset +1), index_to_col(i+offset + 1)) && index_to_row(i+1) == (white_move ? 4 : 3) && 
+        if(is_on_board(index_to_row(i + pawn_dir +1), index_to_col(i+pawn_dir + 1)) && index_to_row(i+1) == (white_move ? 4 : 3) && 
         board[i +1]->get_piece() ){
           Move temp_move;
-          temp_move.to = i + offset + 1;
+          temp_move.to = i + pawn_dir + 1;
           temp_move.from = i;
           temp_move.is_capture = true;
           temp_move.is_en_passant = true;
@@ -713,10 +713,10 @@ using namespace std;
           }
 
         }
-        if(is_on_board(index_to_row(i+ offset-1), index_to_col(i + offset-1)) && index_to_row(i-1) == (white_move ? 4 : 3) && 
+        if(is_on_board(index_to_row(i+ pawn_dir-1), index_to_col(i + pawn_dir-1)) && index_to_row(i-1) == (white_move ? 4 : 3) && 
         board[i -1]->get_piece() ){
           Move temp_move;
-          temp_move.to = i + offset - 1;
+          temp_move.to = i + pawn_dir - 1;
           temp_move.from = i;
           temp_move.is_capture = true;
           temp_move.is_en_passant = true;
@@ -732,67 +732,17 @@ using namespace std;
       }
 
       /*Rook Moves*/
-      bool skip = false;
-      vector<int> dir = {1, -1, 8, -8};
+      vector<int> rook_dir = {1, -1, 8, -8};
       auto rooks = (white_move ? white_rooks : black_rooks);
-      /*
+      
       for(auto& i : rooks){
-        std::cout << "white_move: "<< i <<endl;
-        for(int j: dir){
-          skip = false;
-
-          
-          for(int k = 1; k <8; k++){    //this loop multiplies the offset
-                               
-            if(is_on_board(index_to_row(i + j*k),index_to_col(i + j*k)) && board[i+ j*k]->get_piece() && board[i + j*k]->get_piece()->color != white_move){
-              std::cout << "i: " << i <<endl;
-              std::cout << "j: " << j <<endl;
-              std::cout << "k: " << k <<endl;
-
-              Move temp_move;
-              temp_move.to = i + j*k;
-              temp_move.from = i;
-              temp_move.is_capture = true;
-              temp_move = Rook_handling(placeholder, temp_move, white_move, true);
-              
-              if(temp_move.is_valid == true){
-                legal_moves.push_back(temp_move);
-                skip = true;
-                break;
-              }
-              
-              break;
-                
-              }
-            if(is_on_board(index_to_row(i + j*k),index_to_col(i + j*k)) && !(board[i + j*k]->get_piece())){
-              Move temp_move;
-              temp_move.to = i + j*k;
-              temp_move.from = i;
-              
-              
-           
-              temp_move = Rook_handling(placeholder, temp_move, white_move, true);
-              if(temp_move.is_valid == true){
-                legal_moves.push_back(temp_move);
-                continue;
-              }
-              
-            }
-            
-            
-          }
-        }
-      }
-      */
-      for(auto& i : rooks){
-        for(int& offset : dir){
+        for(int& offset : rook_dir){
           for(int j = 1; j<8 ; j++){
-            std::cout << "j: "<< j <<endl;
 
             //this function stops the algorithm from searching beyond a belonging piece
-            if(!(is_on_board(index_to_row(i + offset *j),index_to_col(i + offset * j))) || 
-            !((index_to_col(i) == index_to_col(i + offset *j)) || (index_to_row(i) == index_to_row(i + offset *j))) || 
-            (is_on_board(index_to_row(i + offset *j),index_to_col(i + offset * j)) && board[i+ j*offset]->get_piece() && ((board[i + j*offset]->get_piece()->color) == white_move))
+            if(!(is_on_board(index_to_row(i + offset *j),index_to_col(i + offset * j))) ||      //breka if the square does not exist
+            !((index_to_col(i) == index_to_col(i + offset *j)) || (index_to_row(i) == index_to_row(i + offset *j))) ||          //break if the rook wraps around the edge
+            (is_on_board(index_to_row(i + offset *j),index_to_col(i + offset * j)) && board[i+ j*offset]->get_piece() && ((board[i + j*offset]->get_piece()->color) == white_move))     //break if a piece of the same color is found
           ){
               //this breaks the direction. Rook cannot dcapture or move beyond piece of its color
               j=7;
@@ -811,7 +761,7 @@ using namespace std;
                 legal_moves.push_back(temp_move);
               }
               //no matter the legality of the move, direction has to break because the rook cannot move beyond a piece
-              j=7;
+              j=7;    //this will end the for loop in the immediate iteration
               break;
             }
             else{
@@ -828,9 +778,58 @@ using namespace std;
             }
           }
         }
-      
       }
-      
+
+      /*Bishop Moves*/
+      vector<int> bishop_dir = {7, -7, 9, -9};
+      auto bishops = (white_move ? white_bishops : black_bishops);
+
+      for(auto& i : bishops){
+        for(int& offset : bishop_dir){
+          for(int j = 1; j<8 ; j++){
+
+            //this function stops the algorithm from searching beyond a belonging piece
+            if(!(is_on_board(index_to_row(i + offset *j),index_to_col(i + offset * j))) ||      //breka if the square does not exist
+            ((index_to_col(i) == index_to_col(i + offset *j)) || (index_to_row(i) == index_to_row(i + offset *j))) ||          //break if the bishop wraps around the edge
+            (2 > abs((index_to_row(i) - index_to_row(i + offset *j)))) ||
+            (is_on_board(index_to_row(i + offset *j),index_to_col(i + offset * j)) && board[i+ j*offset]->get_piece() && ((board[i + j*offset]->get_piece()->color) == white_move))     //break if a piece of the same color is found
+          ){
+              //this breaks the direction. bishop cannot dcapture or move beyond piece of its color
+              j=7;
+              break;
+            }
+
+            //this function handles behavior when confrontet with an opposing piece
+            if(is_on_board(index_to_row(i + offset *j),index_to_col(i + offset * j)) && board[i+ j*offset]->get_piece() && !((board[i + j*offset]->get_piece()->color) == white_move)){
+              Move temp_move;
+              temp_move.to = i + offset *j;
+              temp_move.from = i;
+              temp_move.is_capture = true;
+              temp_move = Bishop_handling(placeholder, temp_move, white_move, true);
+
+              if(temp_move.is_valid ==true){
+                legal_moves.push_back(temp_move);
+              }
+              //no matter the legality of the move, direction has to break because the rook cannot move beyond a piece
+              j=7;    //this will end the for loop in the immediate iteration
+              break;
+            }
+            else{
+              Move temp_move;
+              temp_move.to = i + offset *j;
+              temp_move.from = i;
+              temp_move = Bishop_handling(placeholder, temp_move, white_move, true);
+
+              if(temp_move.is_valid ==true){
+                legal_moves.push_back(temp_move);
+              }
+              /*ADD all the moves to empty squares here*/
+
+            }
+          }
+        }
+      }
+
       
       return legal_moves;
     }

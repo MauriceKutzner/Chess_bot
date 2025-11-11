@@ -267,6 +267,8 @@ using namespace std;
       while( a != 2){
         do{
           print_board();
+          std::cout << "p_color: " << board[8]->get_piece()->color<<endl;
+          std::cout << "p_color: " << board[56]->get_piece()->color<<endl;
           found_moves = find_moves(white_move);
           for(auto i:found_moves){
             std::cout << "move.from : " << i.from << endl;
@@ -729,10 +731,12 @@ using namespace std;
 
         }
       }
+
       /*Rook Moves*/
       bool skip = false;
       vector<int> dir = {1, -1, 8, -8};
       auto rooks = (white_move ? white_rooks : black_rooks);
+      /*
       for(auto& i : rooks){
         std::cout << "white_move: "<< i <<endl;
         for(int j: dir){
@@ -740,9 +744,7 @@ using namespace std;
 
           
           for(int k = 1; k <8; k++){    //this loop multiplies the offset
-            if(skip){
-              break;
-            }
+                               
             if(is_on_board(index_to_row(i + j*k),index_to_col(i + j*k)) && board[i+ j*k]->get_piece() && board[i + j*k]->get_piece()->color != white_move){
               std::cout << "i: " << i <<endl;
               std::cout << "j: " << j <<endl;
@@ -759,7 +761,7 @@ using namespace std;
                 skip = true;
                 break;
               }
-              skip = true;
+              
               break;
                 
               }
@@ -782,7 +784,39 @@ using namespace std;
           }
         }
       }
-     return legal_moves;
+      */
+      for(auto& i : rooks){
+        for(int& offset : dir){
+          for(int j = 1; j<8 ; j++){
+            std::cout << "j: "<< j <<endl;
+            if(is_on_board(index_to_row(i + offset *j),index_to_col(i + offset * j)) && board[i+ j*offset]->get_piece() && ((board[i + j*offset]->get_piece()->color) == white_move)){
+              std::cout << "i: " << i <<endl;
+              std::cout << "offset: " << offset << endl;
+              std::cout << "index: " << i + j * offset << endl;
+
+              std::cout << "piece_color: " << board[i + j*offset]->get_piece()->color<<endl;
+              std::cout << "player_color: " << white_move<<endl;
+              std::cout << "STOP" << endl << endl;
+              j=7;
+              break;
+            }
+            if(is_on_board(index_to_row(i + offset *j),index_to_col(i + offset * j)) && board[i+ j*offset]->get_piece() && !((board[i + j*offset]->get_piece()->color) == white_move)){
+              std::cout << "i: " << i <<endl;
+              std::cout << "offset: " << offset << endl;
+              std::cout << "index: " << i + j * offset << endl;
+
+              std::cout << "piece_color: " << board[i + j*offset]->get_piece()->color<<endl;
+              std::cout << "player_color: " << white_move<<endl;
+              j=7;
+              break;
+            }
+          }
+        }
+      
+      }
+      
+      
+      return legal_moves;
     }
 
     bool Board::input_to_var(std::string input, bool white_move){
